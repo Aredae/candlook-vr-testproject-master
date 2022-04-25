@@ -34,4 +34,9 @@ public class SceneChanger : MonoBehaviour
     {
         SceneManager.LoadScene("VerticalFixations");
     }
+
+    public void Replays()
+    {
+        SceneManager.LoadScene("Replays");
+    }
 }

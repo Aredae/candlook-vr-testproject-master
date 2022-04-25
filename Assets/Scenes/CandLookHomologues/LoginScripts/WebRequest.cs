@@ -119,4 +119,17 @@ public class WebRequest
             }
         }
     }
+
+    
+    public IEnumerator GetResultsFromSubject(string uri, int subject_id, System.Action<string> callback)
+    {
+        /*
+        WWWForm myform = new WWWForm();
+        myform.AddField("group_id", group_id);
+
+        //Fetch ET results from db based on game, timestamp and user
+        */
+        return null;
+    }
+    
 }
