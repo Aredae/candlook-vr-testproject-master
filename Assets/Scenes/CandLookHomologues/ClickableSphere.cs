@@ -10,9 +10,9 @@ public class ClickableSphere : MonoBehaviour
     public double currentradius = 0.25;
     public double arcsecsscaleronwin = 2;
     public double arcsecsscaleronL = 2;
-    public double arcsecmin = 20;
-    public double arcsecmax = 3600;
-    public const double startingarcsecs= 150000;
+    public const double arcsecmin = 220;
+    public const double arcsecmax = 3800;
+    public const double startingarcsecs= 1100;
 
     // Start is called before the first frame update
     void Start()
@@ -28,7 +28,20 @@ public class ClickableSphere : MonoBehaviour
 
     private void OnMouseDown()
     {
-        currentradius =MoveAndScale(currentarcsecs/2, currentarcsecs, currentradius, sphere4);
+        if (currentarcsecs /2 > arcsecmin)
+        {
+            currentradius = MoveAndScale(currentarcsecs / arcsecsscaleronwin, currentarcsecs, currentradius, sphere4);
+        }
+        else if(currentarcsecs *2 < arcsecmax)
+        {
+            currentradius = MoveAndScale(currentarcsecs * arcsecsscaleronL, currentarcsecs, currentradius, sphere4);
+        }
+        else
+        {
+            Debug.Log("IDK u a god or trash");
+        }
+            
+        
     }
 
     public double MoveAndScale(double nextangle_arcsecs, double currentangle_arcsecs, double currentradius, GameObject spheretochange)
@@ -37,9 +50,7 @@ public class ClickableSphere : MonoBehaviour
         double currentanglerad = (System.Math.PI / 180) * (currentangle_arcsecs / 3600);
 
         double scalefactor = System.Math.Sin(currentanglerad) / System.Math.Sin(nextanglerad);
-        Debug.Log(scalefactor);
         double nextpos = (currentradius * scalefactor) - System.Math.Sin(nextanglerad);
-        Debug.Log(nextpos);
         Vector3 pos = spheretochange.transform.position;
         pos.z = (float)nextpos;
         spheretochange.transform.position = pos;

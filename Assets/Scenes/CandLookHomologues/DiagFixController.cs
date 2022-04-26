@@ -258,7 +258,6 @@ public class DiagFixController : MonoBehaviour
             timer += Time.deltaTime;
             if (started && timer > WaitingTime && ball.transform.position != endpos)
             {
-                
                 if (timer > WaitingTime && N_repetitions > 0)
                 {
                     if (recorder != null)
@@ -276,7 +275,8 @@ public class DiagFixController : MonoBehaviour
             }
             else if (ball.transform.position == endpos && timer > WaitingTime)
             {
-                if(numhorizontals != HorizontalStepSlider.GetComponent<Slider>().value)
+                Debug.Log(ball.transform.position);
+                if (numhorizontals != HorizontalStepSlider.GetComponent<Slider>().value)
                 {
                     endpos = MoveHorizontally(endpos);
                     lasthorrizontalpos = MoveHorizontally(lasthorrizontalpos);
@@ -284,6 +284,7 @@ public class DiagFixController : MonoBehaviour
                     step = ball.transform.position;
                     N_forward_steps = 0;
                     numhorizontals++;
+                    timer = 0;
                 }
                 else
                 {
@@ -297,6 +298,7 @@ public class DiagFixController : MonoBehaviour
                     N_Back_steps = 0;
                     numhorizontals = 0;
                     SettingsCanvas.SetActive(true);
+                    timer = 0;
                 }
             }
         }
