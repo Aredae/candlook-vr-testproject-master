@@ -5,7 +5,7 @@ using UnityEngine;
 public class ClickableSphere : MonoBehaviour
 {
 
-    public GameObject sphere4;
+    public GameObject sphere;
     public double currentarcsecs = 90 * 3600;
     public double currentradius = 0.25;
     public double arcsecsscaleronwin = 2;
@@ -17,7 +17,7 @@ public class ClickableSphere : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        currentradius = MoveAndScale(startingarcsecs, currentarcsecs, currentradius, sphere4);
+        currentradius = MoveAndScale(startingarcsecs, currentarcsecs, currentradius, sphere);
     }
 
     // Update is called once per frame
@@ -30,11 +30,11 @@ public class ClickableSphere : MonoBehaviour
     {
         if (currentarcsecs /2 > arcsecmin)
         {
-            currentradius = MoveAndScale(currentarcsecs / arcsecsscaleronwin, currentarcsecs, currentradius, sphere4);
+            currentradius = MoveAndScale(currentarcsecs / arcsecsscaleronwin, currentarcsecs, currentradius, sphere);
         }
         else if(currentarcsecs *2 < arcsecmax)
         {
-            currentradius = MoveAndScale(currentarcsecs * arcsecsscaleronL, currentarcsecs, currentradius, sphere4);
+            currentradius = MoveAndScale(currentarcsecs * arcsecsscaleronL, currentarcsecs, currentradius, sphere);
         }
         else
         {
