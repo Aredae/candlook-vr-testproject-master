@@ -89,12 +89,13 @@ public class DatabaseUtil : MonoBehaviour
 
     public void CreateGroups()
     {
-        StartCoroutine(webrequest.GetGroups("http://158.37.193.176/server.php", _createGroupsCallback));
+        StartCoroutine(webrequest.GetGroups("http://localhost/server.php", _createGroupsCallback));
     }
 
     public void CreateSubjects(int groupid)
     {
-        StartCoroutine(webrequest.GetSubjectsFromGroup("http://158.37.193.176/getsubjectsbygroup.php", groupid, _createSubjectsCallback));
+        //http://158.37.193.176/getsubjectsbygroup.php
+        StartCoroutine(webrequest.GetSubjectsFromGroup("http://localhost/getsubjectsbygroup.php", groupid, _createSubjectsCallback));
     }
 
 

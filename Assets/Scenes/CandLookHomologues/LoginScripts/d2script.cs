@@ -69,7 +69,7 @@ public class d2script : MonoBehaviour
         rowtimer = 0;
         numrows = 14;
         numletters = 9;
-        waitduration = 0;
+        waitduration = 3;
         finishedtext.SetActive(false);
         retry.SetActive(false);
         ScoreResultPage.SetActive(false);
@@ -184,11 +184,12 @@ public class d2script : MonoBehaviour
         string jsonrawSeriesData = JsonConvert.SerializeObject(resultdb.rawSeriesData);
         Debug.Log(jsonrawSeriesData);
         */
+        SceneManager.LoadScene("MainMenu");
     }
 
     public void SaveResults(ResultEntity resultsobject)
     {
-        StartCoroutine(webrequest.InsertD2Results("http://158.37.193.176/SaveNewD2Score.php", resultsobject, _createSaveCallback));
+        StartCoroutine(webrequest.InsertD2Results("http://localhost/SaveNewD2Score.php", resultsobject, _createSaveCallback));
     }
 
     public void hideAllCanvasElements()

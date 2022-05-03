@@ -7,6 +7,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using TMPro;
 using Util;
+using Varjo.XR;
+using static Varjo.XR.VarjoEyeTracking;
 //using Npgsql;
 
 public class practice : MonoBehaviour
@@ -21,7 +23,9 @@ public class practice : MonoBehaviour
     private bool setupfinished;
     //private List<Group> grouplist;
     private bool groupsfilled;
-
+    public GameObject xrrig;
+    private VarjoEventManager em;
+    private EyeTracker et;
     // Start is called before the first frame update
     void Start()
     {
@@ -29,11 +33,13 @@ public class practice : MonoBehaviour
         //clear default options
         groupsfilled = false;
 
-        //SimpleSmoothMouseLook mouseController = xrrig.AddComponent<SimpleSmoothMouseLook>();
-        //if (!UnityEngine.XR.XRSettings.isDeviceActive)
-        //{
-        //    SimpleSmoothMouseLook mouseController = xrrig.AddComponent<SimpleSmoothMouseLook>();
-        //}
+        
+        if (!UnityEngine.XR.XRSettings.isDeviceActive)
+        {
+            SimpleSmoothMouseLook mouseController = xrrig.AddComponent<SimpleSmoothMouseLook>();
+        }
+        em = VarjoEventManager.Instance;
+        et = new VarjoET(Camera.main);
     }
 
     // Update is called once per frame
@@ -47,7 +53,9 @@ public class practice : MonoBehaviour
         Subjectinfo.instance.SetSubjectInInfo(s);
         Subjectinfo.instance.SetNotes("Notes dont matter here");
         setupfinished = true;
-        SceneManager.LoadScene("Main Menu");
+        et.calibrate();
+        Debug.Log(VarjoEyeTracking.GetGazeCalibrationQuality());
+        SceneManager.LoadScene("MainMenu");
     }
 
     public void restart()

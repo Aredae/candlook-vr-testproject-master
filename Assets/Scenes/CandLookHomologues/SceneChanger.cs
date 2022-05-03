@@ -19,7 +19,20 @@ public class SceneChanger : MonoBehaviour
     }
     public void D2Test()
     {
-        SceneManager.LoadScene("D2Test");
+        SceneManager.LoadScene("D2test");
+    }
+    public void practice()
+    {
+        SceneManager.LoadScene("Practice");
+    }
+    public void MainMenu()
+    {
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    public void exit()
+    {
+        Application.Quit();
     }
 
 
