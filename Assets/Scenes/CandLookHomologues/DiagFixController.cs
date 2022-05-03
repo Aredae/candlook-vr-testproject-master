@@ -205,15 +205,15 @@ public class DiagFixController : MonoBehaviour
         //DiagFixLR
         if (started && gametype ==0 || started && gametype == 1)
         {
+            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            {
+                recorder.Update();
+            }
             timer += Time.deltaTime;
             if (started && timer > WaitingTime && N_repetitions > 0)
             {
                 if (timer > WaitingTime && N_repetitions > 0)
                 {
-                    if (recorder != null)
-                    {
-                        recorder.Update();
-                    }
                     if (N_forward_steps < numsteps.GetComponent<Slider>().value)
                     {
                         step = MoveForward(step);
@@ -243,6 +243,10 @@ public class DiagFixController : MonoBehaviour
             else if (N_repetitions == 0 && timer > WaitingTime)
             {
                 canvas.SetActive(true);
+                if (UnityEngine.XR.XRSettings.isDeviceActive)
+                {
+                    OnDestroy();
+                }
                 started = false;
                 N_repetitions = 2;
                 N_forward_steps = 0;
@@ -255,15 +259,15 @@ public class DiagFixController : MonoBehaviour
         //Vertical fix
         if(started && gametype == 2)
         {
+            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            {
+                recorder.Update();
+            }
             timer += Time.deltaTime;
             if (started && timer > WaitingTime && ball.transform.position != endpos)
             {
                 if (timer > WaitingTime && N_repetitions > 0)
                 {
-                    if (recorder != null)
-                    {
-                        recorder.Update();
-                    }
                     if (N_forward_steps < numsteps.GetComponent<Slider>().value)
                     {
                         step = MoveForward(step);
@@ -290,6 +294,10 @@ public class DiagFixController : MonoBehaviour
                 {
                     canvas.SetActive(true);
                     lasthorrizontalpos = lrinit_pos;
+                    if (UnityEngine.XR.XRSettings.isDeviceActive)
+                    {
+                        OnDestroy();
+                    }
                     started = false;
                     ball.transform.position = lrinit_pos;
                     endpos = lrinit_end_pos;
@@ -315,6 +323,14 @@ public class DiagFixController : MonoBehaviour
             init_pos = ball.transform.position;
             endpos = endball.transform.position;
             step = ball.transform.position;
+            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            {
+                recorder = new GameRecorder(new Util.Model.Game
+                {
+                    Name = "Fixation_Diagonal_LeftRight_" + WaitingTime + "_SecondsPerFixation_" + (int)numsteps.GetComponent<Slider>().value + "_FixationSteps",
+                    Version = 1,
+                }, et);
+            }
         }
         else if(gametype == 1)
         {
@@ -322,6 +338,14 @@ public class DiagFixController : MonoBehaviour
             init_pos = startballrl.transform.position;
             endpos = endballrl.transform.position;
             step = ball.transform.position;
+            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            {
+                recorder = new GameRecorder(new Util.Model.Game
+                {
+                    Name = "Fixation_Diagonal_RightLeft_" + WaitingTime + "_SecondsPerFixation_" + (int)numsteps.GetComponent<Slider>().value + "_FixationSteps",
+                    Version = 1,
+                }, et);
+            }
         }
         else
         {
@@ -331,6 +355,14 @@ public class DiagFixController : MonoBehaviour
             horizontalsteps = (int)HorizontalStepSlider.GetComponent<Slider>().value;
             Vector3 linehorizontal = lrinit_end_pos - rlinit_end_pos;
             distancehorizontal = linehorizontal / horizontalsteps;
+            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            {
+                recorder = new GameRecorder(new Util.Model.Game
+                {
+                    Name = "Fixation_Vertical_LeftRight_" + WaitingTime + "_SecondsPerFixation_" + (int)numsteps.GetComponent<Slider>().value + "_VerticalSteps_"+ horizontalsteps +"_HorizontalSteps",
+                    Version = 1,
+                }, et);
+            }
         }
         float value = numsteps.GetComponent<Slider>().value;
         Vector3 line = endpos - init_pos;

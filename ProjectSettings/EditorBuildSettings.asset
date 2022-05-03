@@ -9,26 +9,20 @@ EditorBuildSettings:
     path: Assets/Scenes/CandLookHomologues/Main Menu.unity
     guid: 5cd179138cf296f468d34a824d0eb73d
   - enabled: 1
-    path: Assets/Scenes/CandLookHomologues/BallGame.unity
+    path: Assets/Scenes/CandLookHomologues/FixationScene.unity
     guid: b443934fc0454cb4690c913e6b53ba1a
   - enabled: 1
-    path: Assets/Scenes/CandLookHomologues/DiagFixRL.unity
-    guid: ee0508495470e2845a69444f61d5f07f
+    path: Assets/Scenes/CandLookHomologues/LoginScene.unity
+    guid: 3c062826d72e5c747b352f9786f270ad
   - enabled: 1
-    path: Assets/Scenes/CandLookHomologues/SmoothDiagLR.unity
-    guid: 9f810cb422f58a64f9ff4f71acf2d3c8
+    path: Assets/Scenes/CandLookHomologues/Replays.unity
+    guid: 85c4e623e0e426643b332089cda8de20
   - enabled: 1
-    path: Assets/Scenes/CandLookHomologues/SmoothDiagRL.unity
-    guid: ed4b542df78d94a4fb0c0c444aba4d81
+    path: Assets/Scenes/CandLookHomologues/SmoothPursuitScene.unity
+    guid: 83a6732c69ac4064fa533358680d4faf
   - enabled: 1
-    path: Assets/Scenes/CandLookHomologues/SmoothHorizontalLR.unity
-    guid: e428332c5febbf94a8df1c73ce928204
-  - enabled: 1
-    path: Assets/Scenes/CandLookHomologues/SmoothHorizontalRL.unity
-    guid: fcb1d6ebc953ed348b7878669609db52
-  - enabled: 1
-    path: Assets/Scenes/CandLookHomologues/VerticalFixations.unity
-    guid: 2ee2faca8556b404ab23e512b6f652a9
+    path: Assets/Scenes/CandLookHomologues/Stereovision Test.unity
+    guid: bf554518d56cea84d9b5a7d593aa2557
   m_configObjects:
     Varjo.XR.Settings: {fileID: 11400000, guid: 453fee88f7343f44ab4449b576786022, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: e5705f72a9e13774b85f91cdec9eee8a, type: 2}

@@ -5,35 +5,23 @@ using UnityEngine.SceneManagement;
 
 public class SceneChanger : MonoBehaviour
 {
-   public void DiagFixRL()
+    public void FixationTasks()
     {
-        SceneManager.LoadScene("DiagFixRL");
+        SceneManager.LoadScene("FixationScene");
     }
-    public void DiagFixLR()
+    public void SmoothPursuitTasks()
     {
-        SceneManager.LoadScene("BallGame");
+        SceneManager.LoadScene("SmoothPursuitScene");
     }
-    public void SmoothDiagRL()
+    public void ReadingTasks()
     {
-        SceneManager.LoadScene("SmoothDiagRL");
+        SceneManager.LoadScene("ReadingScene");
     }
-    public void SmoothDiagLR()
+    public void D2Test()
     {
-        SceneManager.LoadScene("SmoothDiagLR");
-    }
-    public void SmoothHorizontalLR()
-    {
-        SceneManager.LoadScene("SmoothHorizontalLR");
-    }
-    public void SmoothHorizontalRL()
-    {
-        SceneManager.LoadScene("SmoothHorizontalRL");
+        SceneManager.LoadScene("D2Test");
     }
 
-    public void VerticalFixationsLR()
-    {
-        SceneManager.LoadScene("VerticalFixations");
-    }
 
     public void Replays()
     {

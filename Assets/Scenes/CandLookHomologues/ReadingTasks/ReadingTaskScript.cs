@@ -69,7 +69,10 @@ public class ReadingTaskScript : MonoBehaviour
         }
         if (started)
         {
-            
+            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            {
+                recorder.Update();
+            }
             //record stuff
         }
     }
@@ -104,11 +107,14 @@ public class ReadingTaskScript : MonoBehaviour
 
     public void gameFinished()
     {
+        if (UnityEngine.XR.XRSettings.isDeviceActive)
+        {
+            OnDestroy();
+        }
         started = false;
         settingscanvas.SetActive(true);
         finishedButton.SetActive(false);
         text.GetComponent<Text>().text = init_text;
-        //stoprecording
     }
 
     IEnumerator waitAndGenerateText()
