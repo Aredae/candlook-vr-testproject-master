@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Util;
 using Varjo.XR;
@@ -41,6 +43,8 @@ public class DiagFixController : MonoBehaviour
     private VarjoEventManager em;
     private GameRecorder recorder;
     public GameObject numsteps;
+    private int numstepsslidervalue;
+
     private Vector3 distance;
     private Vector3 distancehorizontal;
     private bool started;
@@ -50,14 +54,28 @@ public class DiagFixController : MonoBehaviour
     private int horizontalsteps;
     private Vector3 lasthorrizontalpos;
     private int numhorizontals;
+    private float stepslidervalue;
 
     public GameObject HorizontalStepSlider;
+    private int horizontalstepvalue;
+
     public GameObject HorizontalStepText;
+    public GameObject startReplayButton;
+
+    private bool replay;
+    private GameObject replayobject;
+    private string[] gameprams;
     //private Varjo.XR.VarjoEventManager em;
 
     // Start is called before the first frame update
     void Start()
     {
+        if (GameObject.Find("DetailForReplay") != null)
+        {
+            replay = true;
+            replayobject = GameObject.Find("DetailForReplay");
+        }
+        else { replay = false; }
         started = false;
         endball.SetActive(false);
         startballrl.SetActive(false);
@@ -82,44 +100,115 @@ public class DiagFixController : MonoBehaviour
             em = VarjoEventManager.Instance;
             et = new VarjoET(Camera.main);
             //GazeVisualizer.spawn(et);
-            recorder = new GameRecorder(new Util.Model.Game
+        }
+        if (replay)
+        {
+            horizontalsteps = 0;
+            SettingsCanvas.SetActive(false);
+
+            //Set all settings to that of replay
+            gameprams = replayobject.GetComponent<GameInfo>().GameName.Split('_');
+            if (gameprams[1] + "_" + gameprams[2] == "Diagonal_Left Right")
             {
-                Name = "BallGame",
-                Version = 1,
-            }, et);
+                gametype = 0;
+                movestartpoint(typedropdown);
+            }
+            else if (gameprams[1] + "_" + gameprams[2] == "Diagonal_Right Left")
+            {
+                gametype = 1;
+                movestartpoint(typedropdown);
+            }
+            else if (gameprams[1] + "_" + gameprams[2] == "Vertical_Left Right")
+            {
+                gametype = 2;
+                movestartpoint(typedropdown);
+                try
+                {
+                    horizontalsteps = Int32.Parse(gameprams[7]);
+                    Console.WriteLine(horizontalsteps);
+                }
+                catch (FormatException)
+                {
+                    Console.WriteLine($"Unable to parse '{gameprams[7]}'");
+                }
+            }
+            else
+            {
+                Debug.Log("something went wrong recognizing direction");
+            }
+
+            
+            try
+            {
+                numstepsslidervalue = Int32.Parse(gameprams[5]);
+                Console.WriteLine(numstepsslidervalue);
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine($"Unable to parse '{gameprams[5]}'");
+            }
+
+            try
+            {
+                WaitingTime = Int32.Parse(gameprams[3]);
+                Console.WriteLine(WaitingTime);
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine($"Unable to parse '{gameprams[3]}'");
+            }
+
+            
+
+
+
+
+
+            startReplayButton.SetActive(true);
+            
+        }
+        else
+        {
+            startReplayButton.SetActive(false);
+            gametype = typedropdown.GetComponent<Dropdown>().value;
+            horizontalsteps = (int)HorizontalStepSlider.GetComponent<Slider>().value;
+            WaitingTime = (int)timerslider.GetComponent<Slider>().value;
+            numstepsslidervalue = (int)numsteps.GetComponent<Slider>().value;
+            numsteps.GetComponent<Slider>().onValueChanged.AddListener(delegate
+            {
+                stepschanged(numsteps);
+            });
+
+            HorizontalStepSlider.GetComponent<Slider>().onValueChanged.AddListener(delegate
+            {
+                horizontalstepschanged(HorizontalStepSlider);
+            });
+
+            timerslider.GetComponent<Slider>().onValueChanged.AddListener(delegate
+            {
+                timerchanged(timerslider);
+            });
+
+            typedropdown.GetComponent<Dropdown>().onValueChanged.AddListener(delegate
+            {
+                movestartpoint(typedropdown);
+            });
+
+            steptext.GetComponent<Text>().text = "Number of Steps: " + numsteps.GetComponent<Slider>().value;
+
+            timetext.GetComponent<Text>().text = "Seconds Per Fixation: " + timerslider.GetComponent<Slider>().value;
+
+            HorizontalStepText.GetComponent<Text>().text = "Number of Horizontal Steps: " + HorizontalStepSlider.GetComponent<Slider>().value;
         }
 
-        numsteps.GetComponent<Slider>().onValueChanged.AddListener(delegate
-        {
-            stepschanged(numsteps);
-        });
-
-        HorizontalStepSlider.GetComponent<Slider>().onValueChanged.AddListener(delegate
-        {
-            horizontalstepschanged(HorizontalStepSlider);
-        });
-
-        timerslider.GetComponent<Slider>().onValueChanged.AddListener(delegate
-        {
-            timerchanged(timerslider);
-        });
-
-        typedropdown.GetComponent<Dropdown>().onValueChanged.AddListener(delegate
-        {
-           movestartpoint(typedropdown);
-        });
-
-        steptext.GetComponent<Text>().text = "Number of Steps: " + numsteps.GetComponent<Slider>().value;
-
-        timetext.GetComponent<Text>().text = "Seconds Per Fixation: " + timerslider.GetComponent<Slider>().value;
-
-        HorizontalStepText.GetComponent<Text>().text = "Number of Horizontal Steps: " + HorizontalStepSlider.GetComponent<Slider>().value;
+        
 
     }
 
     void stepschanged(GameObject numsteps)
     {
-        if(typedropdown.GetComponent<Dropdown>().value == 2)
+        numstepsslidervalue = (int)numsteps.GetComponent<Slider>().value;
+        if (typedropdown.GetComponent<Dropdown>().value == 2)
         {
             steptext.GetComponent<Text>().text = "Number of Vertical Steps: " + numsteps.GetComponent<Slider>().value;
         }
@@ -131,12 +220,17 @@ public class DiagFixController : MonoBehaviour
 
     void horizontalstepschanged(GameObject HorizontalStepSlider)
     {
-            HorizontalStepText.GetComponent<Text>().text = "Number of Horizontal Steps: " + HorizontalStepSlider.GetComponent<Slider>().value;
+        horizontalsteps = (int)HorizontalStepSlider.GetComponent<Slider>().value;
+        HorizontalStepText.GetComponent<Text>().text = "Number of Horizontal Steps: " + HorizontalStepSlider.GetComponent<Slider>().value;
     }
 
-    void movestartpoint(GameObject dropdown)
+    void movestartpoint(GameObject typedropdown)
     {
-        if(dropdown.GetComponent<Dropdown>().value == 0 || dropdown.GetComponent<Dropdown>().value == 2)
+        if (!replay)
+        {
+            gametype = typedropdown.GetComponent<Dropdown>().value;
+        }
+        if (gametype == 0 || gametype == 2)
         {
             ball.transform.position = lrinit_pos;
         }
@@ -144,17 +238,18 @@ public class DiagFixController : MonoBehaviour
         {
             ball.transform.position = rlinit_pos;
         }
-        if(dropdown.GetComponent<Dropdown>().value == 2)
+        if(gametype == 2)
         {
             HorizontalStepSlider.SetActive(true);
             HorizontalStepText.SetActive(true);
-            steptext.GetComponent<Text>().text = "Number of Vertical Steps: " + numsteps.GetComponent<Slider>().value;
+            steptext.GetComponent<Text>().text = "Number of Vertical Steps: " + numstepsslidervalue;
         }
     }
 
 
     void timerchanged(GameObject timerslider)
     {
+        WaitingTime = (int)timerslider.GetComponent<Slider>().value;
         timetext.GetComponent<Text>().text = "Seconds Per Fixation: " + timerslider.GetComponent<Slider>().value;
     }
 
@@ -186,7 +281,7 @@ public class DiagFixController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && UnityEngine.XR.XRSettings.isDeviceActive && !replay)
             et.calibrate();
 
         if (Input.GetKeyUp(KeyCode.Escape) && (xrrig.GetComponent<SimpleSmoothMouseLook>() != null))
@@ -195,7 +290,7 @@ public class DiagFixController : MonoBehaviour
         }
 
 
-        if (UnityEngine.XR.XRSettings.isDeviceActive)
+        if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
         {
             if (em.GetButtonDown(0))
             {
@@ -203,131 +298,155 @@ public class DiagFixController : MonoBehaviour
             }
         }
         //DiagFixLR
-        if (started && gametype ==0 || started && gametype == 1)
+
+        if (started)
         {
-            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            if (replay)
             {
-                recorder.Update();
+                //TODO Spawn Gaze Visualizers that update pos each frame equal to input gaze data
             }
-            timer += Time.deltaTime;
-            if (started && timer > WaitingTime && N_repetitions > 0)
+
+
+            if (gametype == 0 || gametype == 1)
             {
-                if (timer > WaitingTime && N_repetitions > 0)
+                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
                 {
-                    if (N_forward_steps < numsteps.GetComponent<Slider>().value)
+                    recorder.Update();
+                }
+                timer += Time.deltaTime;
+                if (started && timer > WaitingTime && N_repetitions > 0)
+                {
+                    if (timer > WaitingTime && N_repetitions > 0)
                     {
-                        step = MoveForward(step);
-                        ball.transform.position = step;
-                        timer = 0;
-                        N_forward_steps++;
-                    }
-                    else
-                    {
-                        if (N_Back_steps < numsteps.GetComponent<Slider>().value)
+                        if (N_forward_steps < numstepsslidervalue)
                         {
-                            step = MoveBackwards(step);
+                            step = MoveForward(step);
                             ball.transform.position = step;
                             timer = 0;
-                            N_Back_steps++;
+                            N_forward_steps++;
                         }
                         else
                         {
-                            N_Back_steps = N_SMALL_STEPS;
-                            N_forward_steps = N_SMALL_STEPS;
-                            N_repetitions--;
-                        }
+                            if (N_Back_steps < numstepsslidervalue)
+                            {
+                                step = MoveBackwards(step);
+                                ball.transform.position = step;
+                                timer = 0;
+                                N_Back_steps++;
+                            }
+                            else
+                            {
+                                N_Back_steps = N_SMALL_STEPS;
+                                N_forward_steps = N_SMALL_STEPS;
+                                N_repetitions--;
+                            }
 
+                        }
                     }
                 }
-            }
-            else if (N_repetitions == 0 && timer > WaitingTime)
-            {
-                canvas.SetActive(true);
-                if (UnityEngine.XR.XRSettings.isDeviceActive)
-                {
-                    OnDestroy();
-                }
-                started = false;
-                N_repetitions = 2;
-                N_forward_steps = 0;
-                N_Back_steps = 0;
-                SettingsCanvas.SetActive(true);
-            }
-        }
-        
-        
-        //Vertical fix
-        if(started && gametype == 2)
-        {
-            if (UnityEngine.XR.XRSettings.isDeviceActive)
-            {
-                recorder.Update();
-            }
-            timer += Time.deltaTime;
-            if (started && timer > WaitingTime && ball.transform.position != endpos)
-            {
-                if (timer > WaitingTime && N_repetitions > 0)
-                {
-                    if (N_forward_steps < numsteps.GetComponent<Slider>().value)
-                    {
-                        step = MoveForward(step);
-                        ball.transform.position = step;
-                        timer = 0;
-                        N_forward_steps++;
-                    }
-                }
-            }
-            else if (ball.transform.position == endpos && timer > WaitingTime)
-            {
-                Debug.Log(ball.transform.position);
-                if (numhorizontals != HorizontalStepSlider.GetComponent<Slider>().value)
-                {
-                    endpos = MoveHorizontally(endpos);
-                    lasthorrizontalpos = MoveHorizontally(lasthorrizontalpos);
-                    ball.transform.position = lasthorrizontalpos;
-                    step = ball.transform.position;
-                    N_forward_steps = 0;
-                    numhorizontals++;
-                    timer = 0;
-                }
-                else
+                else if (N_repetitions == 0 && timer > WaitingTime)
                 {
                     canvas.SetActive(true);
-                    lasthorrizontalpos = lrinit_pos;
-                    if (UnityEngine.XR.XRSettings.isDeviceActive)
+                    if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
                     {
                         OnDestroy();
                     }
                     started = false;
-                    ball.transform.position = lrinit_pos;
-                    endpos = lrinit_end_pos;
                     N_repetitions = 2;
                     N_forward_steps = 0;
                     N_Back_steps = 0;
-                    numhorizontals = 0;
-                    SettingsCanvas.SetActive(true);
-                    timer = 0;
+                    if (!replay)
+                    {
+                        SettingsCanvas.SetActive(true);
+                    }
+                    else
+                    {
+                        startReplayButton.SetActive(true);
+                    }
+                }
+            }
+
+
+            //Vertical fix
+            if (gametype == 2)
+            {
+                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                {
+                    recorder.Update();
+                }
+                timer += Time.deltaTime;
+                if (started && timer > WaitingTime && ball.transform.position != endpos)
+                {
+                    if (timer > WaitingTime && N_repetitions > 0)
+                    {
+                        if (N_forward_steps < numstepsslidervalue)
+                        {
+                            step = MoveForward(step);
+                            ball.transform.position = step;
+                            timer = 0;
+                            N_forward_steps++;
+                        }
+                    }
+                }
+                else if (ball.transform.position == endpos && timer > WaitingTime)
+                {
+                    Debug.Log(ball.transform.position);
+                    if (numhorizontals != horizontalsteps)
+                    {
+                        endpos = MoveHorizontally(endpos);
+                        lasthorrizontalpos = MoveHorizontally(lasthorrizontalpos);
+                        ball.transform.position = lasthorrizontalpos;
+                        step = ball.transform.position;
+                        N_forward_steps = 0;
+                        numhorizontals++;
+                        timer = 0;
+                    }
+                    else
+                    {
+                        canvas.SetActive(true);
+                        lasthorrizontalpos = lrinit_pos;
+                        if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                        {
+                            OnDestroy();
+                        }
+                        started = false;
+                        ball.transform.position = lrinit_pos;
+                        endpos = lrinit_end_pos;
+                        N_repetitions = 2;
+                        N_forward_steps = 0;
+                        N_Back_steps = 0;
+                        numhorizontals = 0;
+                        if (!replay)
+                        {
+                            SettingsCanvas.SetActive(true);
+                        }
+                        else
+                        {
+                            startReplayButton.SetActive(true);
+                        }
+                        timer = 0;
+                    }
                 }
             }
         }
+        
 
     }
 
     public void startGame()
     {
-        gametype = typedropdown.GetComponent<Dropdown>().value;
-        WaitingTime = (int)timerslider.GetComponent<Slider>().value;
+        
         if (gametype == 0)
         {
             //ball.transform.position = lrinit_pos;
             init_pos = ball.transform.position;
             endpos = endball.transform.position;
             step = ball.transform.position;
-            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
-                    Name = "Fixation_Diagonal_LeftRight_" + WaitingTime + "_SecondsPerFixation_" + (int)numsteps.GetComponent<Slider>().value + "_FixationSteps",
+                    Name = "Fixation_Diagonal_Left Right_" + WaitingTime + "_Seconds Per Fixation_" + numstepsslidervalue + "_Fixation Steps",
                     Version = 1,
                 }, et);
             }
@@ -338,11 +457,11 @@ public class DiagFixController : MonoBehaviour
             init_pos = startballrl.transform.position;
             endpos = endballrl.transform.position;
             step = ball.transform.position;
-            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
-                    Name = "Fixation_Diagonal_RightLeft_" + WaitingTime + "_SecondsPerFixation_" + (int)numsteps.GetComponent<Slider>().value + "_FixationSteps",
+                    Name = "Fixation_Diagonal_Right Left_" + WaitingTime + "_Seconds Per Fixation_" + numstepsslidervalue + "_Fixation Steps",
                     Version = 1,
                 }, et);
             }
@@ -352,24 +471,35 @@ public class DiagFixController : MonoBehaviour
             init_pos = ball.transform.position;
             endpos = endballrl.transform.position;
             step = ball.transform.position;
-            horizontalsteps = (int)HorizontalStepSlider.GetComponent<Slider>().value;
             Vector3 linehorizontal = lrinit_end_pos - rlinit_end_pos;
             distancehorizontal = linehorizontal / horizontalsteps;
-            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
-                    Name = "Fixation_Vertical_LeftRight_" + WaitingTime + "_SecondsPerFixation_" + (int)numsteps.GetComponent<Slider>().value + "_VerticalSteps_"+ horizontalsteps +"_HorizontalSteps",
+                    Name = "Fixation_Vertical_Left Right_" + WaitingTime + "_Seconds Per Fixation_" + numstepsslidervalue + "_Vertical Steps_"+ horizontalsteps +"_Horizontal Steps",
                     Version = 1,
                 }, et);
             }
         }
-        float value = numsteps.GetComponent<Slider>().value;
+        float value = numstepsslidervalue;
         Vector3 line = endpos - init_pos;
         distance = line / value;
-
-        SettingsCanvas.SetActive(false);
+        if (replay)
+        {
+            startReplayButton.SetActive(false);
+        }
+        else
+        {
+            SettingsCanvas.SetActive(false);
+        }
         started = true;
+    }
+
+    public void ExitReplay()
+    {
+        Destroy(replayobject);
+        SceneManager.LoadScene("Replays");
     }
 
     void OnDestroy()

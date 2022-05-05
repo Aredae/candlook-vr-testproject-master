@@ -43,6 +43,20 @@ namespace Util
             this.notes = n;
         }
     }
+
+    public class ReplayInfo : MonoBehaviour
+    {
+        public static ReplayInfo instance;
+
+        string GameName;
+
+        private void Awake()
+        {
+            instance = this;
+
+            DontDestroyOnLoad(this.gameObject);
+        }
+    }
     /*
     public class Group
     {

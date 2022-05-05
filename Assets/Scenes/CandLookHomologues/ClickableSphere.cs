@@ -10,9 +10,9 @@ public class ClickableSphere : MonoBehaviour
     public double currentradius = 0.25;
     public double arcsecsscaleronwin = 2;
     public double arcsecsscaleronL = 2;
-    public const double arcsecmin = 220;
+    public const double arcsecmin = 300;
     public const double arcsecmax = 3800;
-    public const double startingarcsecs= 1100;
+    public const double startingarcsecs= 3800;
 
     // Start is called before the first frame update
     void Start()

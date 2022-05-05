@@ -9,17 +9,18 @@ public class DepthTest : MonoBehaviour
     public GameObject sphere2;
     public GameObject sphere3;
     public GameObject sphere4;
+    public GameObject Sphere5;
     public GameObject Canvas;
     public GameObject xrrig;
     // Start is called before the first frame update
     void Start()
     {
-        /*
+        
         sphere1.SetActive(false);
         sphere2.SetActive(false);
         sphere3.SetActive(false);
         sphere4.SetActive(false);
-        */
+        
         //MoveAndScale(900, 1800, 0.25f, sphere4);
 
         if (!UnityEngine.XR.XRSettings.isDeviceActive)

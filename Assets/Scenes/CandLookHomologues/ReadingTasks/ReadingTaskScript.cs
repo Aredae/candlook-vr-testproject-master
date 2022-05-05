@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Util;
 using Varjo.XR;
@@ -24,6 +25,8 @@ public class ReadingTaskScript : MonoBehaviour
     public GameObject mediumbutton;
     public GameObject longbutton;
 
+    public GameObject startReplayButton;
+
     private int length;
 
     private string language;
@@ -37,15 +40,69 @@ public class ReadingTaskScript : MonoBehaviour
     private GameRecorder recorder;
     private VarjoEventManager em;
     private EyeTracker et;
+    private GameObject replayobject;
+    private bool replay;
+    private string[] gameprams;
     // Start is called before the first frame update
     void Start()
     {
+        if (GameObject.Find("DetailForReplay") != null)
+        {
+            replay = true;
+            replayobject = GameObject.Find("DetailForReplay");
+        }
+        else { replay = false; }
+
         countdowntimer.SetActive(false);
         waitrunning = false;
         init_text = text.GetComponent<Text>().text;
         finishedButton.SetActive(false);
-        language = "English";
-        length = 0;
+        if (replay)
+        {
+            settingscanvas.SetActive(false);
+
+            //Set all settings to that of replay
+            gameprams = replayobject.GetComponent<GameInfo>().GameName.Split('_');
+            //Set replay language
+            if(gameprams[2] == "English")
+            {
+                language = "English";
+            }else if(gameprams[2] == "Norwegian")
+            {
+                language = "Norwegian";
+            }
+            else
+            {
+                Debug.Log("Could not find language");
+            }
+            //Set replay length
+            if (gameprams[1] == "Short")
+            {
+                length = 0;
+            }
+            else if (gameprams[1] == "Medium")
+            {
+                length = 1;
+            }
+            else if (gameprams[1] == "Long")
+            {
+                length = 2;
+            }
+            else
+            {
+                Debug.Log("Could not find length");
+            }
+
+            startReplayButton.SetActive(true);
+        }
+        else
+        {
+            startReplayButton.SetActive(false);
+            language = "English";
+            length = 0;
+            
+        }
+
         if (!UnityEngine.XR.XRSettings.isDeviceActive)
         {
             SimpleSmoothMouseLook mouseController = xrrig.AddComponent<SimpleSmoothMouseLook>();
@@ -69,7 +126,16 @@ public class ReadingTaskScript : MonoBehaviour
         }
         if (started)
         {
-            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            if (replay)
+            {
+                //TODO make gaze visualizers move each frame equal to et data from db
+                //
+                //
+                //
+            }
+
+
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
             {
                 recorder.Update();
             }
@@ -80,7 +146,14 @@ public class ReadingTaskScript : MonoBehaviour
     public void startGame()
     {
         StartCoroutine(waitAndGenerateText());
-        settingscanvas.SetActive(false);
+        if (replay)
+        {
+            startReplayButton.SetActive(false);
+        }
+        else
+        {
+            settingscanvas.SetActive(false);
+        }
     }
 
     public void shortpressed()
@@ -107,12 +180,19 @@ public class ReadingTaskScript : MonoBehaviour
 
     public void gameFinished()
     {
-        if (UnityEngine.XR.XRSettings.isDeviceActive)
+        if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
         {
             OnDestroy();
         }
         started = false;
-        settingscanvas.SetActive(true);
+        if (replay)
+        {
+            startReplayButton.SetActive(true);
+        }
+        else
+        {
+            settingscanvas.SetActive(true);
+        }
         finishedButton.SetActive(false);
         text.GetComponent<Text>().text = init_text;
     }
@@ -125,20 +205,22 @@ public class ReadingTaskScript : MonoBehaviour
         waitrunning = false;
         countdowntimer.SetActive(false);
         //waitrunning = true;
-        if (dropdownlanguage.GetComponent<Dropdown>().value == 0)
+        if (!replay)
         {
-            language = "English";
+            if (dropdownlanguage.GetComponent<Dropdown>().value == 0)
+            {
+                language = "English";
+            }
+            else
+            {
+                language = "Norwegian";
+            }
         }
-        else
-        {
-            language = "Norwegian";
-        }
-
         if (language == "English" && length == 0)
         {
             text.GetComponent<Text>().text = "English Short";
 
-            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
@@ -151,7 +233,7 @@ public class ReadingTaskScript : MonoBehaviour
         {
             text.GetComponent<Text>().text = "English Medium";
 
-            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
@@ -163,7 +245,7 @@ public class ReadingTaskScript : MonoBehaviour
         else if (language == "English" && length == 2)
         {
             text.GetComponent<Text>().text = "English Long";
-            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
@@ -177,8 +259,8 @@ public class ReadingTaskScript : MonoBehaviour
             text.GetComponent<Text>().text = "Deilfinen mangler ytterøre. men dens hørselsorgan er blant de best utviklede i dyreriket. Delfinen kan være under "
                 + "vann i 15 minutter uten å måtte opp for å puste. Den er i bevegelse under mesteparten av sitt trettiårige liv og "
                 + "sover litt bare nå og da. Øynene er vanligvis igjen i 30 sekunder, men noen ganger lenger - opp til fem minutter.";
-            /*
-            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
@@ -186,7 +268,6 @@ public class ReadingTaskScript : MonoBehaviour
                     Version = 1,
                 }, et);
             }
-            */
         }
         else if (language == "Norwegian" && length == 1)
         {
@@ -197,8 +278,8 @@ public class ReadingTaskScript : MonoBehaviour
                 + "biolog, hadde invitert meg til den lykkelige begivenheten som skjedde i et kjempeakvarium i California. Den "
                 + "blågrå, over to meter lange hunndelfinen stod nær bunne på akvariet da hun fødde ungen. Nedkomsten tok litt "
                 + "over en halvtime. Så reiv hunnen av navlestrengen med et kraftig rykk, og den nesten meterlange ungen var fri.";
-            /*
-            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
@@ -206,7 +287,7 @@ public class ReadingTaskScript : MonoBehaviour
                     Version = 1,
                 }, et);
             }
-            */
+            
         }
         else
         {
@@ -221,8 +302,8 @@ public class ReadingTaskScript : MonoBehaviour
                 + "moren. Min venn fortalte; «Ungen kan høre umiddelbart etter fødsel. Den oppfatter mors «stemme» og" //+ System.Environment.NewLine
                 + "«snakker» selv med plystring og grynt». Vi så hvordan ungen drakk av to brystvorter som var plassert nær" //+ System.Environment.NewLine
                 + "hunnens hale. Når hun dro sammen bukmusklene, sprutet hun melk inn i ungens munn.";
-            /*
-            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
@@ -230,10 +311,19 @@ public class ReadingTaskScript : MonoBehaviour
                     Version = 1,
                 }, et);
             }
-            */
+            
         }
-        finishedButton.SetActive(true);
+        if (!replay)
+        {
+            finishedButton.SetActive(true);
+        }
         started = true;
+    }
+
+    public void ExitReplay()
+    {
+        Destroy(replayobject);
+        SceneManager.LoadScene("Replays");
     }
 
     void OnDestroy()

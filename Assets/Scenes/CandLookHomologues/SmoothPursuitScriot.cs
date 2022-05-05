@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Util;
 using Varjo.XR;
@@ -30,6 +32,8 @@ public class SmoothPursuitScriot : MonoBehaviour
 
     public GameObject repetitionText;
 
+    public GameObject startReplayButton;
+
     private Vector3 lrinit_pos;
     private Vector3 rlinit_pos;
     private Vector3 rlinit_end_pos;
@@ -50,6 +54,9 @@ public class SmoothPursuitScriot : MonoBehaviour
     private int verticalsteps;
     private Vector3 distancevertical;
     private float t;
+    private bool replay;
+    private GameObject replayobject;
+    private string[] gameprams;
 
     private Vector3 tempposvector;
 
@@ -59,6 +66,13 @@ public class SmoothPursuitScriot : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        if(GameObject.Find("DetailForReplay")!= null)
+        {
+            replay = true;
+            replayobject = GameObject.Find("DetailForReplay");
+        }
+        else { replay = false; }
+
         started = false;
         endball.SetActive(false);
         startballrl.SetActive(false);
@@ -80,28 +94,81 @@ public class SmoothPursuitScriot : MonoBehaviour
             et = new VarjoET(Camera.main);
             //GazeVisualizer.spawn(et);
         }
-
-        direction = 0;
-        speed = 2;
-        repetitions = 1;
-        gametype = 0;
-        repetitionText.GetComponent<Text>().text = "Repetitons: " + repetitionSlider.GetComponent<Slider>().value;
-        speedtext.GetComponent<Text>().text = "Speed (Duration of Saccadic Movement):" + System.Environment.NewLine + speedslider.GetComponent<Slider>().value + " Seconds";
-
-        DirectionDropdown.GetComponent<Dropdown>().onValueChanged.AddListener(delegate
+        if (replay)
         {
-            ChangeDirection(DirectionDropdown);
-        });
+            SettingsCanvas.SetActive(false);
 
-        speedslider.GetComponent<Slider>().onValueChanged.AddListener(delegate
-        {
-            speedChanged(speedslider);
-        });
+            //Set all settings to that of replay
+            gameprams= replayobject.GetComponent<GameInfo>().GameName.Split('_');
+            if(gameprams[2] == "Left Right")
+            {
+                direction = 0;
+            }else if(gameprams[2] == "Right Left")
+            {
+                direction = 1;
+            }
+            else
+            {
+                Debug.Log("something went wrong recognizing direction");
+            }
+            string[] speedparam = gameprams[3].Split(' ');
+            try
+            {
+                speed = Int32.Parse(speedparam[0]);
+                Console.WriteLine(speed);
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine($"Unable to parse '{speedparam[0]}'");
+            }
+            try
+            {
+                repetitions = Int32.Parse(gameprams[4]);
+                Console.WriteLine(repetitions);
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine($"Unable to parse '{gameprams[0]}'");
+            }
 
-        repetitionSlider.GetComponent<Slider>().onValueChanged.AddListener(delegate
+            if (gameprams[1] == "Diagonal")
+            {
+                gametype = 0;
+            }
+            else if (gameprams[1] == "Horizontal")
+            {
+                gametype = 1;
+            }
+
+            startReplayButton.SetActive(true);
+
+        }
+        else
         {
-            repetitionsChanged(repetitionSlider);
-        });
+            startReplayButton.SetActive(false);
+            direction = 0;
+            speed = 2;
+            repetitions = 1;
+            gametype = 0;
+            repetitionText.GetComponent<Text>().text = "Repetitons: " + repetitionSlider.GetComponent<Slider>().value;
+            speedtext.GetComponent<Text>().text = "Speed (Duration of Saccadic Movement):" + System.Environment.NewLine + speedslider.GetComponent<Slider>().value + " Seconds";
+
+            DirectionDropdown.GetComponent<Dropdown>().onValueChanged.AddListener(delegate
+            {
+                ChangeDirection(DirectionDropdown);
+            });
+
+            speedslider.GetComponent<Slider>().onValueChanged.AddListener(delegate
+            {
+                speedChanged(speedslider);
+            });
+
+            repetitionSlider.GetComponent<Slider>().onValueChanged.AddListener(delegate
+            {
+                repetitionsChanged(repetitionSlider);
+            });
+        }
+        
 
     }
 
@@ -156,7 +223,7 @@ public class SmoothPursuitScriot : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && UnityEngine.XR.XRSettings.isDeviceActive)
             et.calibrate();
 
         if (Input.GetKeyUp(KeyCode.Escape) && (xrrig.GetComponent<SimpleSmoothMouseLook>() != null))
@@ -166,7 +233,13 @@ public class SmoothPursuitScriot : MonoBehaviour
 
         if (started)
         {
-            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            //TODO make gaze visualizers move each frame equal to et data from db
+            //
+            //
+            //
+
+
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
             {
                 recorder.Update();
             }
@@ -202,13 +275,30 @@ public class SmoothPursuitScriot : MonoBehaviour
                         endball.transform.position = rlinit_end_pos;
                     }
                     t = 0;
-                    if (UnityEngine.XR.XRSettings.isDeviceActive)
+                    if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
                     {
                         OnDestroy();
                     }
                     started = false;
-                    repetitions = (int)repetitionSlider.GetComponent<Slider>().value;
-                    SettingsCanvas.SetActive(true);
+                    if (!replay)
+                    {
+                        repetitions = (int)repetitionSlider.GetComponent<Slider>().value;
+                        SettingsCanvas.SetActive(true);
+                    }
+                    else
+                    {
+                        startReplayButton.SetActive(true);
+                        try
+                        {
+                            repetitions = Int32.Parse(gameprams[4]);
+                            Console.WriteLine(repetitions);
+                        }
+                        catch (FormatException)
+                        {
+                            Console.WriteLine($"Unable to parse '{gameprams[0]}'");
+                        }
+                    }
+                    
                 }
             }
             //HorizontalSmooth
@@ -270,11 +360,11 @@ public class SmoothPursuitScriot : MonoBehaviour
                 endball.transform.position = currenthorizontalendpoint;
                 currentstartpos = lrinit_pos;
 
-                if (UnityEngine.XR.XRSettings.isDeviceActive)
+                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
                 {
                     recorder = new GameRecorder(new Util.Model.Game
                     {
-                        Name = "SmoothPursuit_Horizontal_LeftRight_" + speed + "_Seconds_" + repetitions + "_Repetitions",
+                        Name = "Smooth Pursuit_Horizontal_Left Right_" + speed + " Seconds_" + repetitions + "_Repetitions",
                         Version = 1,
                     }, et);
                 }
@@ -286,11 +376,11 @@ public class SmoothPursuitScriot : MonoBehaviour
                 currentendpos = lrinit_end_pos;
                 currentstartpos = lrinit_pos;
 
-                if (UnityEngine.XR.XRSettings.isDeviceActive)
+                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
                 {
                     recorder = new GameRecorder(new Util.Model.Game
                     {
-                        Name = "SmoothPursuit_Diagonal_LeftRight_" + speed + "_Seconds_" + repetitions + "_Repetitions",
+                        Name = "Smooth Pursuit_Diagonal_Left Right_" + speed + " Seconds_" + repetitions + "_Repetitions",
                         Version = 1,
                     }, et);
                 }
@@ -307,11 +397,11 @@ public class SmoothPursuitScriot : MonoBehaviour
                 currenthorizontalendpoint = new Vector3(rlinit_end_pos.x, rlinit_pos.y, rlinit_pos.z);
                 endball.transform.position = currenthorizontalendpoint;
                 currentstartpos = rlinit_pos;
-                if (UnityEngine.XR.XRSettings.isDeviceActive)
+                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
                 {
                     recorder = new GameRecorder(new Util.Model.Game
                     {
-                        Name = "SmoothPursuit_Horizontal_RightLeft_" + speed + "_Seconds_" + repetitions + "_Repetitions",
+                        Name = "Smooth Pursuit_Horizontal_Right Left_" + speed + " Seconds_" + repetitions + "_Repetitions",
                         Version = 1,
                     }, et);
                 }
@@ -322,11 +412,11 @@ public class SmoothPursuitScriot : MonoBehaviour
                 endball.transform.position = rlinit_end_pos;
                 currentendpos = rlinit_end_pos;
                 currentstartpos = rlinit_pos;
-                if (UnityEngine.XR.XRSettings.isDeviceActive)
+                if (UnityEngine.XR.XRSettings.isDeviceActive &&!replay)
                 {
                     recorder = new GameRecorder(new Util.Model.Game
                     {
-                        Name = "SmoothPursuit_Diagonal_RightLeft_" + speed + "_Seconds_" + repetitions + "_Repetitions",
+                        Name = "Smooth Pursuit_Diagonal_Right Left_" + speed + " Seconds_" + repetitions + "_Repetitions",
                         Version = 1,
                     }, et);
                 }
@@ -334,10 +424,20 @@ public class SmoothPursuitScriot : MonoBehaviour
         }
 
         t = 0;
-        speed = (int)speedslider.GetComponent<Slider>().value;
-        repetitions = (int)repetitionSlider.GetComponent<Slider>().value;
-        SettingsCanvas.SetActive(false);
+        if (!replay)
+        {
+            speed = (int)speedslider.GetComponent<Slider>().value;
+            repetitions = (int)repetitionSlider.GetComponent<Slider>().value;
+            SettingsCanvas.SetActive(false);
+        }
         started = true;
+    }
+
+
+    public void ExitReplay()
+    {
+        Destroy(replayobject);
+        SceneManager.LoadScene("Replays");
     }
 
     void OnDestroy()
