@@ -62,6 +62,8 @@ public class SmoothPursuitScriot : MonoBehaviour
 
     private Vector3 tempposvector;
     private bool pause;
+    public int subject_id;
+    private bool usersignedinn;
 
 
     //private Varjo.XR.VarjoEventManager em;
@@ -76,6 +78,17 @@ public class SmoothPursuitScriot : MonoBehaviour
             replayobject = GameObject.Find("DetailForReplay");
         }
         else { replay = false; }
+
+        if (GameObject.Find("SubjectInfo") != null)
+        {
+            subject_id = GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>().GetId();
+            usersignedinn = true;
+        }
+        else
+        {
+            usersignedinn = false;
+            //Noone is logged in and info should not be saved
+        }
 
         started = false;
         endball.SetActive(false);
@@ -251,7 +264,7 @@ public class SmoothPursuitScriot : MonoBehaviour
                     //
                     //
                 }
-                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                 {
                     recorder.Update();
                 }
@@ -287,7 +300,7 @@ public class SmoothPursuitScriot : MonoBehaviour
                             endball.transform.position = rlinit_end_pos;
                         }
                         t = 0;
-                        if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                        if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                         {
                             OnDestroy();
                         }
@@ -376,13 +389,13 @@ public class SmoothPursuitScriot : MonoBehaviour
                 endball.transform.position = currenthorizontalendpoint;
                 currentstartpos = lrinit_pos;
 
-                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                 {
                     recorder = new GameRecorder(new Util.Model.Game
                     {
                         Name = "Smooth Pursuit_Horizontal_Left Right_" + speed + " Seconds_" + repetitions + "_Repetitions",
                         Version = 1,
-                    }, et);
+                    }, et, subject_id);
                 }
             }
             else
@@ -392,13 +405,13 @@ public class SmoothPursuitScriot : MonoBehaviour
                 currentendpos = lrinit_end_pos;
                 currentstartpos = lrinit_pos;
 
-                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                 {
                     recorder = new GameRecorder(new Util.Model.Game
                     {
                         Name = "Smooth Pursuit_Diagonal_Left Right_" + speed + " Seconds_" + repetitions + "_Repetitions",
                         Version = 1,
-                    }, et);
+                    }, et, subject_id);
                 }
             }
         }
@@ -413,13 +426,13 @@ public class SmoothPursuitScriot : MonoBehaviour
                 currenthorizontalendpoint = new Vector3(rlinit_end_pos.x, rlinit_pos.y, rlinit_pos.z);
                 endball.transform.position = currenthorizontalendpoint;
                 currentstartpos = rlinit_pos;
-                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                 {
                     recorder = new GameRecorder(new Util.Model.Game
                     {
                         Name = "Smooth Pursuit_Horizontal_Right Left_" + speed + " Seconds_" + repetitions + "_Repetitions",
                         Version = 1,
-                    }, et);
+                    }, et, subject_id);
                 }
             }
             else
@@ -428,13 +441,13 @@ public class SmoothPursuitScriot : MonoBehaviour
                 endball.transform.position = rlinit_end_pos;
                 currentendpos = rlinit_end_pos;
                 currentstartpos = rlinit_pos;
-                if (UnityEngine.XR.XRSettings.isDeviceActive &&!replay)
+                if (UnityEngine.XR.XRSettings.isDeviceActive &&!replay && usersignedinn)
                 {
                     recorder = new GameRecorder(new Util.Model.Game
                     {
                         Name = "Smooth Pursuit_Diagonal_Right Left_" + speed + " Seconds_" + repetitions + "_Repetitions",
                         Version = 1,
-                    }, et);
+                    }, et, subject_id);
                 }
             }
         }

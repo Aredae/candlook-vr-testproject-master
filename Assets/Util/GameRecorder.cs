@@ -12,16 +12,18 @@ namespace Util
     sealed class GameRecorder : IDisposable
     {
         private Model.Game game;
+        private int subject_id;
         private EyeTracker et;
         private DB db;
         private Model.Recording recording;
         private bool disposed = false;
         private bool committed = false;
 
-        public GameRecorder(Model.Game game, EyeTracker et)
+        public GameRecorder(Model.Game game, EyeTracker et, int sid)
         {
             this.et = et;
             this.game = game;
+            this.subject_id = sid;
             this.db = new DB();
             bool done = false;
             int count = 0;
@@ -53,7 +55,7 @@ namespace Util
                     }
                 }
             }
-            this.recording = new Model.Recording { Game = game };
+            this.recording = new Model.Recording { Game = game, Subject_id = subject_id};
         }
 
         // KLUDGE: must be called every frame => couples tightly to implementation of EyeTracker

@@ -68,6 +68,8 @@ public class DiagFixController : MonoBehaviour
     private GameObject replayobject;
     private string[] gameprams;
     private bool pause;
+    public int subject_id;
+    private bool usersignedinn;
 
     //private Varjo.XR.VarjoEventManager em;
 
@@ -80,6 +82,16 @@ public class DiagFixController : MonoBehaviour
             replayobject = GameObject.Find("DetailForReplay");
         }
         else { replay = false; }
+        if(GameObject.Find("SubjectInfo") != null)
+        {
+            subject_id = GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>().GetId();
+            usersignedinn = true;
+        }
+        else
+        {
+            usersignedinn = false;
+            //Noone is logged in and info should not be saved
+        }
         started = false;
         endball.SetActive(false);
         startballrl.SetActive(false);
@@ -313,7 +325,7 @@ public class DiagFixController : MonoBehaviour
 
                 if (gametype == 0 || gametype == 1)
                 {
-                    if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                    if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                     {
                         recorder.Update();
                     }
@@ -351,7 +363,7 @@ public class DiagFixController : MonoBehaviour
                     else if (N_repetitions == 0 && timer > WaitingTime)
                     {
                         canvas.SetActive(true);
-                        if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                        if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                         {
                             OnDestroy();
                         }
@@ -376,7 +388,7 @@ public class DiagFixController : MonoBehaviour
                 //Vertical fix
                 if (gametype == 2)
                 {
-                    if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                    if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                     {
                         recorder.Update();
                     }
@@ -411,7 +423,7 @@ public class DiagFixController : MonoBehaviour
                         {
                             canvas.SetActive(true);
                             lasthorrizontalpos = lrinit_pos;
-                            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                             {
                                 OnDestroy();
                             }
@@ -452,13 +464,14 @@ public class DiagFixController : MonoBehaviour
             init_pos = ball.transform.position;
             endpos = endball.transform.position;
             step = ball.transform.position;
-            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
                     Name = "Fixation_Diagonal_Left Right_" + WaitingTime + "_Seconds Per Fixation_" + numstepsslidervalue + "_Fixation Steps",
+
                     Version = 1,
-                }, et);
+                }, et, subject_id);
             }
         }
         else if(gametype == 1)
@@ -467,13 +480,13 @@ public class DiagFixController : MonoBehaviour
             init_pos = startballrl.transform.position;
             endpos = endballrl.transform.position;
             step = ball.transform.position;
-            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
                     Name = "Fixation_Diagonal_Right Left_" + WaitingTime + "_Seconds Per Fixation_" + numstepsslidervalue + "_Fixation Steps",
                     Version = 1,
-                }, et);
+                }, et, subject_id);
             }
         }
         else
@@ -483,13 +496,13 @@ public class DiagFixController : MonoBehaviour
             step = ball.transform.position;
             Vector3 linehorizontal = lrinit_end_pos - rlinit_end_pos;
             distancehorizontal = linehorizontal / horizontalsteps;
-            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
                     Name = "Fixation_Vertical_Left Right_" + WaitingTime + "_Seconds Per Fixation_" + numstepsslidervalue + "_Vertical Steps_"+ horizontalsteps +"_Horizontal Steps",
                     Version = 1,
-                }, et);
+                }, et, subject_id);
             }
         }
         float value = numstepsslidervalue;

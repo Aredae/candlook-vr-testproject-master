@@ -14,9 +14,22 @@ public class ZCalibration : MonoBehaviour
 {
     private EyeTracker et;
     private GameRecorder recorder;
+    private int subject_id;
+    private bool usersignedinn;
+
     // Start is called before the first frame update
     void Start()
     {
+        if (GameObject.Find("SubjectInfo") != null)
+        {
+            subject_id = GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>().GetId();
+            usersignedinn = true;
+        }
+        else
+        {
+            usersignedinn = false;
+            //Noone is logged in and info should not be saved
+        }
         et = new VarjoET(Camera.main);
         GazeVisualizer.spawn(et);
 
@@ -24,7 +37,7 @@ public class ZCalibration : MonoBehaviour
         {
             Name = "Z-Calibration",
             Version = 1,
-        }, et);
+        }, et, subject_id);
     }
 
     // Update is called once per frame

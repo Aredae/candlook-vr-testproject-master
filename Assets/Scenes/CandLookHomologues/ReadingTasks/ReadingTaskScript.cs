@@ -46,6 +46,9 @@ public class ReadingTaskScript : MonoBehaviour
     private GameObject replayobject;
     private bool replay;
     private string[] gameprams;
+    public int subject_id;
+    private bool usersignedinn;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -55,6 +58,17 @@ public class ReadingTaskScript : MonoBehaviour
             replayobject = GameObject.Find("DetailForReplay");
         }
         else { replay = false; }
+
+        if (GameObject.Find("SubjectInfo") != null)
+        {
+            subject_id = GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>().GetId();
+            usersignedinn = true;
+        }
+        else
+        {
+            usersignedinn = false;
+            //Noone is logged in and info should not be saved
+        }
 
         countdowntimer.SetActive(false);
         pause = false;
@@ -144,7 +158,7 @@ public class ReadingTaskScript : MonoBehaviour
                 }
 
 
-                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                 {
                     recorder.Update();
                 }
@@ -193,7 +207,7 @@ public class ReadingTaskScript : MonoBehaviour
 
     public void gameFinished()
     {
-        if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+        if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
         {
             OnDestroy();
         }
@@ -235,38 +249,38 @@ public class ReadingTaskScript : MonoBehaviour
         {
             text.GetComponent<Text>().text = "English Short";
 
-            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
                     Name = "ReadingTask_Short_English",
                     Version = 1,
-                }, et);
+                }, et, subject_id);
             }
         }
         else if (language == "English" && length == 1)
         {
             text.GetComponent<Text>().text = "English Medium";
 
-            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
                     Name = "ReadingTask_Medium_English",
                     Version = 1,
-                }, et);
+                }, et, subject_id);
             }
         }
         else if (language == "English" && length == 2)
         {
             text.GetComponent<Text>().text = "English Long";
-            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
                     Name = "ReadingTask_Long_English",
                     Version = 1,
-                }, et);
+                }, et, subject_id);
             }
         }
         else if (language == "Norwegian" && length == 0)
@@ -275,13 +289,13 @@ public class ReadingTaskScript : MonoBehaviour
                 + "vann i 15 minutter uten å måtte opp for å puste. Den er i bevegelse under mesteparten av sitt trettiårige liv og "
                 + "sover litt bare nå og da. Øynene er vanligvis igjen i 30 sekunder, men noen ganger lenger - opp til fem minutter.";
             
-            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
                     Name = "ReadingTask_Short_Norwegian",
                     Version = 1,
-                }, et);
+                }, et, subject_id);
             }
         }
         else if (language == "Norwegian" && length == 1)
@@ -294,13 +308,13 @@ public class ReadingTaskScript : MonoBehaviour
                 + "blågrå, over to meter lange hunndelfinen stod nær bunne på akvariet da hun fødde ungen. Nedkomsten tok litt "
                 + "over en halvtime. Så reiv hunnen av navlestrengen med et kraftig rykk, og den nesten meterlange ungen var fri.";
             
-            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
                     Name = "ReadingTask_Medium_Norwegian",
                     Version = 1,
-                }, et);
+                }, et,subject_id);
             }
             
         }
@@ -318,13 +332,13 @@ public class ReadingTaskScript : MonoBehaviour
                 + "«snakker» selv med plystring og grynt». Vi så hvordan ungen drakk av to brystvorter som var plassert nær" //+ System.Environment.NewLine
                 + "hunnens hale. Når hun dro sammen bukmusklene, sprutet hun melk inn i ungens munn.";
             
-            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
                     Name = "ReadingTask_Long_Norwegian",
                     Version = 1,
-                }, et);
+                }, et,subject_id);
             }
             
         }

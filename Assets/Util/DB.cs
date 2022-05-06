@@ -49,6 +49,7 @@ namespace Util
         {
             public int RecordingId { get; set; }
             public Game Game { get; set; }
+            public int Subject_id { get; set; }
             // These lists will be translated by Npgsql to use PostgreSQL arrays, which can be efficiently
             // read by psycopg2 into numpy arrays for data analysis. This is considerably more efficient
             // than using a single row for every entry.

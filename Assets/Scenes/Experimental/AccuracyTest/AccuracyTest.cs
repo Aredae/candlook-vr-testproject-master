@@ -96,10 +96,23 @@ public class AccuracyTest : MonoBehaviour
 
     Measurement[] measurements;
     Tuple<float, float, float, float>[] summaries;
+    private int subject_id;
+    private bool usersignedinn;
 
     // Start is called before the first frame update
     void Start()
     {
+        if (GameObject.Find("SubjectInfo") != null)
+        {
+            subject_id = GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>().GetId();
+            usersignedinn = true;
+        }
+        else
+        {
+            usersignedinn = false;
+            //Noone is logged in and info should not be saved
+        }
+
         et = new VarjoET(Camera.main);
         et.calibrate();
 
@@ -112,7 +125,7 @@ public class AccuracyTest : MonoBehaviour
         {
             Name = "accuracy_test",
             Version = 1,
-        }, et);
+        }, et, subject_id);
 
         foreach (GameObject obj in calibrationPoints)
             obj.SetActive(false);

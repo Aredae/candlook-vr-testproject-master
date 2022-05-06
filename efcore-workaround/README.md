@@ -46,3 +46,5 @@ models in `DB.cs` to generate migrations.
      Use -Force to revert a migration that was already applied to the DB
    - To apply all pending migrations to the DB, run
        Update-Database
+4. There can be issues with EFCore.Tools package. If you cant run Add-Migrations or similar commands, try running this command in the package       manager console: C:\Users\YourUserAccount\.nuget\packages\Microsoft.EntityFrameworkCore.Tools\1.1.0-preview4-final\tools\init.ps1. Also remember to restart Visual Studio before you try to run EFCore.Tools commands again.
+5. If EFCore.Design does not work, try uninstalling both EFCoreTools and EFCore.Design and reinstalling them both. Make sure the version is 3.1.18.
