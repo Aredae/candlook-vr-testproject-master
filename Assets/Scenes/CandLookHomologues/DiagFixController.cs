@@ -61,10 +61,14 @@ public class DiagFixController : MonoBehaviour
 
     public GameObject HorizontalStepText;
     public GameObject startReplayButton;
+    public GameObject PauseButton;
+    public GameObject ExitReplayButton;
 
     private bool replay;
     private GameObject replayobject;
     private string[] gameprams;
+    private bool pause;
+
     //private Varjo.XR.VarjoEventManager em;
 
     // Start is called before the first frame update
@@ -158,18 +162,16 @@ public class DiagFixController : MonoBehaviour
                 Console.WriteLine($"Unable to parse '{gameprams[3]}'");
             }
 
-            
-
-
-
-
-
             startReplayButton.SetActive(true);
-            
+            ExitReplayButton.SetActive(true);
+            PauseButton.SetActive(false);
+
         }
         else
         {
             startReplayButton.SetActive(false);
+            ExitReplayButton.SetActive(false);
+            PauseButton.SetActive(false);
             gametype = typedropdown.GetComponent<Dropdown>().value;
             horizontalsteps = (int)HorizontalStepSlider.GetComponent<Slider>().value;
             WaitingTime = (int)timerslider.GetComponent<Slider>().value;
@@ -301,121 +303,62 @@ public class DiagFixController : MonoBehaviour
 
         if (started)
         {
-            if (replay)
+            if (!pause)
             {
-                //TODO Spawn Gaze Visualizers that update pos each frame equal to input gaze data
-            }
-
-
-            if (gametype == 0 || gametype == 1)
-            {
-                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                if (replay)
                 {
-                    recorder.Update();
+                    //TODO Spawn Gaze Visualizers that update pos each frame equal to input gaze data
                 }
-                timer += Time.deltaTime;
-                if (started && timer > WaitingTime && N_repetitions > 0)
+
+
+                if (gametype == 0 || gametype == 1)
                 {
-                    if (timer > WaitingTime && N_repetitions > 0)
+                    if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
                     {
-                        if (N_forward_steps < numstepsslidervalue)
+                        recorder.Update();
+                    }
+                    timer += Time.deltaTime;
+                    if (started && timer > WaitingTime && N_repetitions > 0)
+                    {
+                        if (timer > WaitingTime && N_repetitions > 0)
                         {
-                            step = MoveForward(step);
-                            ball.transform.position = step;
-                            timer = 0;
-                            N_forward_steps++;
-                        }
-                        else
-                        {
-                            if (N_Back_steps < numstepsslidervalue)
+                            if (N_forward_steps < numstepsslidervalue)
                             {
-                                step = MoveBackwards(step);
+                                step = MoveForward(step);
                                 ball.transform.position = step;
                                 timer = 0;
-                                N_Back_steps++;
+                                N_forward_steps++;
                             }
                             else
                             {
-                                N_Back_steps = N_SMALL_STEPS;
-                                N_forward_steps = N_SMALL_STEPS;
-                                N_repetitions--;
+                                if (N_Back_steps < numstepsslidervalue)
+                                {
+                                    step = MoveBackwards(step);
+                                    ball.transform.position = step;
+                                    timer = 0;
+                                    N_Back_steps++;
+                                }
+                                else
+                                {
+                                    N_Back_steps = N_SMALL_STEPS;
+                                    N_forward_steps = N_SMALL_STEPS;
+                                    N_repetitions--;
+                                }
+
                             }
-
                         }
                     }
-                }
-                else if (N_repetitions == 0 && timer > WaitingTime)
-                {
-                    canvas.SetActive(true);
-                    if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
-                    {
-                        OnDestroy();
-                    }
-                    started = false;
-                    N_repetitions = 2;
-                    N_forward_steps = 0;
-                    N_Back_steps = 0;
-                    if (!replay)
-                    {
-                        SettingsCanvas.SetActive(true);
-                    }
-                    else
-                    {
-                        startReplayButton.SetActive(true);
-                    }
-                }
-            }
-
-
-            //Vertical fix
-            if (gametype == 2)
-            {
-                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
-                {
-                    recorder.Update();
-                }
-                timer += Time.deltaTime;
-                if (started && timer > WaitingTime && ball.transform.position != endpos)
-                {
-                    if (timer > WaitingTime && N_repetitions > 0)
-                    {
-                        if (N_forward_steps < numstepsslidervalue)
-                        {
-                            step = MoveForward(step);
-                            ball.transform.position = step;
-                            timer = 0;
-                            N_forward_steps++;
-                        }
-                    }
-                }
-                else if (ball.transform.position == endpos && timer > WaitingTime)
-                {
-                    Debug.Log(ball.transform.position);
-                    if (numhorizontals != horizontalsteps)
-                    {
-                        endpos = MoveHorizontally(endpos);
-                        lasthorrizontalpos = MoveHorizontally(lasthorrizontalpos);
-                        ball.transform.position = lasthorrizontalpos;
-                        step = ball.transform.position;
-                        N_forward_steps = 0;
-                        numhorizontals++;
-                        timer = 0;
-                    }
-                    else
+                    else if (N_repetitions == 0 && timer > WaitingTime)
                     {
                         canvas.SetActive(true);
-                        lasthorrizontalpos = lrinit_pos;
                         if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
                         {
                             OnDestroy();
                         }
                         started = false;
-                        ball.transform.position = lrinit_pos;
-                        endpos = lrinit_end_pos;
                         N_repetitions = 2;
                         N_forward_steps = 0;
                         N_Back_steps = 0;
-                        numhorizontals = 0;
                         if (!replay)
                         {
                             SettingsCanvas.SetActive(true);
@@ -423,11 +366,78 @@ public class DiagFixController : MonoBehaviour
                         else
                         {
                             startReplayButton.SetActive(true);
+                            ExitReplayButton.SetActive(true);
+                            PauseButton.SetActive(false);
                         }
-                        timer = 0;
+                    }
+                }
+
+
+                //Vertical fix
+                if (gametype == 2)
+                {
+                    if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                    {
+                        recorder.Update();
+                    }
+                    timer += Time.deltaTime;
+                    if (started && timer > WaitingTime && ball.transform.position != endpos)
+                    {
+                        if (timer > WaitingTime && N_repetitions > 0)
+                        {
+                            if (N_forward_steps < numstepsslidervalue)
+                            {
+                                step = MoveForward(step);
+                                ball.transform.position = step;
+                                timer = 0;
+                                N_forward_steps++;
+                            }
+                        }
+                    }
+                    else if (ball.transform.position == endpos && timer > WaitingTime)
+                    {
+                        Debug.Log(ball.transform.position);
+                        if (numhorizontals != horizontalsteps)
+                        {
+                            endpos = MoveHorizontally(endpos);
+                            lasthorrizontalpos = MoveHorizontally(lasthorrizontalpos);
+                            ball.transform.position = lasthorrizontalpos;
+                            step = ball.transform.position;
+                            N_forward_steps = 0;
+                            numhorizontals++;
+                            timer = 0;
+                        }
+                        else
+                        {
+                            canvas.SetActive(true);
+                            lasthorrizontalpos = lrinit_pos;
+                            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                            {
+                                OnDestroy();
+                            }
+                            started = false;
+                            ball.transform.position = lrinit_pos;
+                            endpos = lrinit_end_pos;
+                            N_repetitions = 2;
+                            N_forward_steps = 0;
+                            N_Back_steps = 0;
+                            numhorizontals = 0;
+                            if (!replay)
+                            {
+                                SettingsCanvas.SetActive(true);
+                            }
+                            else
+                            {
+                                startReplayButton.SetActive(true);
+                                ExitReplayButton.SetActive(true);
+                                PauseButton.SetActive(false);
+                            }
+                            timer = 0;
+                        }
                     }
                 }
             }
+            
         }
         
 
@@ -488,6 +498,8 @@ public class DiagFixController : MonoBehaviour
         if (replay)
         {
             startReplayButton.SetActive(false);
+            ExitReplayButton.SetActive(false);
+            PauseButton.SetActive(true);
         }
         else
         {
@@ -500,6 +512,24 @@ public class DiagFixController : MonoBehaviour
     {
         Destroy(replayobject);
         SceneManager.LoadScene("Replays");
+    }
+
+    public void PauseGame()
+    {
+
+        if (pause)
+        {
+            PauseButton.GetComponent<Image>().color = startReplayButton.GetComponent<Button>().colors.normalColor;
+            pause = false;
+            PauseButton.GetComponent<Text>().text = "Pause";
+        }
+        else
+        {
+            PauseButton.GetComponent<Image>().color = startReplayButton.GetComponent<Button>().colors.selectedColor;
+            pause = true;
+            PauseButton.GetComponent<Text>().text = "Resume";
+        }
+
     }
 
     void OnDestroy()

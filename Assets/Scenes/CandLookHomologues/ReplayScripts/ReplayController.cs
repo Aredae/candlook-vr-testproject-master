@@ -15,6 +15,7 @@ public class ReplayController : MonoBehaviour
 
     public GameObject Canvas;
     private System.Action<string> _createGetTaskNamesCallback;
+    private System.Action<string> _createGetD2ResultsCallback;
     public GameObject initbutton;
     private string[] gameparameters;
     public GameObject TaskNameText;
@@ -23,10 +24,19 @@ public class ReplayController : MonoBehaviour
     public GameObject ExtraInfo2Text;
     public GameObject ExtraInfo3Text;
     public GameObject ExtraInfo4Text;
+    public GameObject ExtraInfo5Text;
+    public GameObject ExtraInfo6Text;
+    public GameObject ExtraInfo7Text;
+    public GameObject ExtraInfo8Text;
+    public GameObject ExtraInfo9Text;
+    public GameObject ExtraInfo10Text;
     public GameObject ToReplayButton;
     public GameObject Versiontext;
     private GameObject previouslySelectedGameObject;
     public GameObject DetailsForReplay;
+    private GameObject lastbutton;
+    private int i = 0;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -38,13 +48,21 @@ public class ReplayController : MonoBehaviour
         ExtraInfo2Text.SetActive(false);
         ExtraInfo3Text.SetActive(false);
         ExtraInfo4Text.SetActive(false);
+        ExtraInfo5Text.SetActive(false);
+        ExtraInfo6Text.SetActive(false);
+        ExtraInfo7Text.SetActive(false);
+        ExtraInfo8Text.SetActive(false);
+        ExtraInfo9Text.SetActive(false);
+        ExtraInfo10Text.SetActive(false);
         ToReplayButton.SetActive(false);
         Versiontext.SetActive(false);
+        initbutton.SetActive(false);
 
+
+        //TODO php and stuff for getting task names connected to user
         _createGetTaskNamesCallback = (jsonArray) => {
             //Separate entries and store in array
             List<GameInfo> recordingslist = GameInfoFromJson(jsonArray);
-            int i = 0;
             foreach(GameInfo g in recordingslist)
             {
                 //Generate Button for each game
@@ -54,22 +72,95 @@ public class ReplayController : MonoBehaviour
                 newButton.transform.SetParent(Canvas.transform, false);
                 newButton.transform.position = initbutton.transform.position;
                 newButton.transform.position = new Vector3(newButton.transform.position.x, newButton.transform.position.y - newButton.GetComponent<RectTransform>().rect.height*i, newButton.transform.position.z);
-                newButton.GetComponent<Text>().text = g.GameName;
+                newButton.GetComponent<Text>().text = g.GameName + "Timestamp: " + g.timestamp;
                 //Add differnt OnClick Events for eacn button
                 newButton.GetComponent<Button>().onClick.AddListener(ButtonClickEvent);
                 newButton.AddComponent<GameInfoMono>();
                 newButton.GetComponent<GameInfoMono>().GameName = g.GameName;
                 newButton.GetComponent<GameInfoMono>().Version = g.Version;
                 newButton.GetComponent<GameInfoMono>().timestamp = g.timestamp;
+                if(i == recordingslist.Count-1)
+                {
+                    lastbutton = newButton;
+                }
+                i++;
+            }
+        };
+
+        //returns all d2 results, enter d2 results after everything else?
+        //TODO php and stuff for getting d2 results of user
+        _createGetD2ResultsCallback = (jsonArray) =>
+        {
+            List<ResultEntity> d2resultlist = D2ResultFromJson(jsonArray);
+            foreach(ResultEntity r in d2resultlist) {
+                GameObject newButton = DefaultControls.CreateButton(
+                    new DefaultControls.Resources()
+                    );
+                newButton.transform.SetParent(Canvas.transform, false);
+                newButton.transform.position = lastbutton.transform.position;
+                newButton.transform.position = new Vector3(newButton.transform.position.x, newButton.transform.position.y - newButton.GetComponent<RectTransform>().rect.height * i, newButton.transform.position.z);
+                newButton.GetComponent<Text>().text = "D2 test, Recorded on:" + r.start_date;
+                newButton.GetComponent<Button>().onClick.AddListener(D2ResultButtonClicked);
+                newButton.AddComponent<ResultEntityMono>();
+                newButton.GetComponent<ResultEntityMono>().subject_id = r.subject_id;
+                newButton.GetComponent<ResultEntityMono>().notes = r.notes;
+                newButton.GetComponent<ResultEntityMono>().start_date = r.start_date;
+                newButton.GetComponent<ResultEntityMono>().tn = r.tn;
+                newButton.GetComponent<ResultEntityMono>().e = r.e;
+                newButton.GetComponent<ResultEntityMono>().tn_e = r.tn_e;
+                newButton.GetComponent<ResultEntityMono>().e1 = r.e1;
+                newButton.GetComponent<ResultEntityMono>().e2 = r.e2;
+                newButton.GetComponent<ResultEntityMono>().e_percent = r.e_percent;
+                newButton.GetComponent<ResultEntityMono>().cp = r.cp;
+                newButton.GetComponent<ResultEntityMono>().fr = r.fr;
+                newButton.GetComponent<ResultEntityMono>().ed = r.ed;
+                newButton.GetComponent<ResultEntityMono>().d2 = r.d2;
+                if (i == d2resultlist.Count - 1)
+                {
+                    lastbutton = newButton;
+                }
                 i++;
             }
 
-            //Generate button for each entry
-            //if(gamename == something, create button for that game and send data with that button)
         };
 
     }
 
+    void D2ResultButtonClicked()
+    {
+        ToReplayButton.SetActive(false);
+        previouslySelectedGameObject = EventSystem.current.currentSelectedGameObject;
+        GameObject currentbutton = EventSystem.current.currentSelectedGameObject;
+        TaskNameText.GetComponent<Text>().text = "Task: D2 Test";
+        RecordingTimeText.GetComponent<Text>().text = "Date of Recording: " + currentbutton.GetComponent<ResultEntityMono>().start_date;
+        Versiontext.GetComponent<Text>().text = "Results:";
+        ExtraInfo1Text.GetComponent<Text>().text = "TN ->" + currentbutton.GetComponent<ResultEntityMono>().tn;
+        ExtraInfo2Text.GetComponent<Text>().text = "E ->" + currentbutton.GetComponent<ResultEntityMono>().e;
+        ExtraInfo3Text.GetComponent<Text>().text = "TN-E ->" + currentbutton.GetComponent<ResultEntityMono>().tn_e;
+        ExtraInfo4Text.GetComponent<Text>().text = "E1 ->" + currentbutton.GetComponent<ResultEntityMono>().e1;
+        ExtraInfo5Text.GetComponent<Text>().text = "E2 ->" + currentbutton.GetComponent<ResultEntityMono>().e2;
+        ExtraInfo6Text.GetComponent<Text>().text = "E Percent ->" + currentbutton.GetComponent<ResultEntityMono>().e_percent;
+        ExtraInfo7Text.GetComponent<Text>().text = "CP ->" + currentbutton.GetComponent<ResultEntityMono>().cp;
+        ExtraInfo8Text.GetComponent<Text>().text = "FR ->" + currentbutton.GetComponent<ResultEntityMono>().fr;
+        ExtraInfo9Text.GetComponent<Text>().text = "ED ->" + currentbutton.GetComponent<ResultEntityMono>().ed;
+        ExtraInfo10Text.GetComponent<Text>().text = "D2 ->" + currentbutton.GetComponent<ResultEntityMono>().d2;
+
+        TaskNameText.SetActive(true);
+        RecordingTimeText.SetActive(true);
+        Versiontext.SetActive(true);
+        ExtraInfo1Text.SetActive(true);
+        ExtraInfo2Text.SetActive(true);
+        ExtraInfo3Text.SetActive(true);
+        ExtraInfo4Text.SetActive(true);
+        ExtraInfo5Text.SetActive(true);
+        ExtraInfo6Text.SetActive(true);
+        ExtraInfo7Text.SetActive(true);
+        ExtraInfo8Text.SetActive(true);
+        ExtraInfo9Text.SetActive(true);
+        ExtraInfo10Text.SetActive(true);
+
+
+    }
 
     void ButtonClickEvent()
     {
@@ -78,7 +169,7 @@ public class ReplayController : MonoBehaviour
         ToReplayButton.GetComponent<Button>().onClick.RemoveAllListeners();
         gameparameters = EventSystem.current.currentSelectedGameObject.GetComponent<GameInfoMono>().GameName.Split('_');
         TaskNameText.GetComponent<Text>().text = "Task: " + gameparameters[0];
-        RecordingTimeText.GetComponent<Text>().text = "Timestamp: " + EventSystem.current.currentSelectedGameObject.GetComponent<GameInfoMono>().timestamp.ToString();
+        RecordingTimeText.GetComponent<Text>().text = "Timestamp: " + EventSystem.current.currentSelectedGameObject.GetComponent<GameInfoMono>().timestamp;
         Versiontext.GetComponent<Text>().text = "Task Version: " + EventSystem.current.currentSelectedGameObject.GetComponent<GameInfoMono>().Version;
 
         if (gameparameters[0] == "SmoothPursuit")
@@ -116,6 +207,12 @@ public class ReplayController : MonoBehaviour
             ExtraInfo2Text.SetActive(false);
             ExtraInfo3Text.SetActive(false);
             ExtraInfo4Text.SetActive(false);
+            ExtraInfo5Text.SetActive(false);
+            ExtraInfo6Text.SetActive(false);
+            ExtraInfo7Text.SetActive(false);
+            ExtraInfo8Text.SetActive(false);
+            ExtraInfo9Text.SetActive(false);
+            ExtraInfo10Text.SetActive(false);
             ToReplayButton.GetComponent<Button>().onClick.AddListener(GoToReplay);
         }
         else
@@ -127,38 +224,14 @@ public class ReplayController : MonoBehaviour
             ExtraInfo2Text.SetActive(true);
             ExtraInfo3Text.SetActive(true);
             ExtraInfo4Text.SetActive(true);
+            ExtraInfo5Text.SetActive(false);
+            ExtraInfo6Text.SetActive(false);
+            ExtraInfo7Text.SetActive(false);
+            ExtraInfo8Text.SetActive(false);
+            ExtraInfo9Text.SetActive(false);
+            ExtraInfo10Text.SetActive(false);
         }
         ToReplayButton.SetActive(true);
-    }
-    void ReadingButtonClickEvent()
-    {
-        //if()
-        TaskNameText.SetActive(true);
-        RecordingTimeText.SetActive(true);
-        ExtraInfo1Text.SetActive(true);
-        ExtraInfo2Text.SetActive(true);
-        ExtraInfo3Text.SetActive(true);
-        ExtraInfo4Text.SetActive(true);
-    }
-    void FixationButtonClickEvent()
-    {
-        //if()
-        TaskNameText.SetActive(true);
-        RecordingTimeText.SetActive(true);
-        ExtraInfo1Text.SetActive(true);
-        ExtraInfo2Text.SetActive(true);
-        ExtraInfo3Text.SetActive(true);
-        ExtraInfo4Text.SetActive(true);
-    }
-    void DepthButtonClickEvent()
-    {
-        //if()
-        TaskNameText.SetActive(true);
-        RecordingTimeText.SetActive(true);
-        ExtraInfo1Text.SetActive(true);
-        ExtraInfo2Text.SetActive(true);
-        ExtraInfo3Text.SetActive(true);
-        ExtraInfo4Text.SetActive(true);
     }
 
     void GoToReplay()
@@ -201,6 +274,13 @@ public class ReplayController : MonoBehaviour
     {
         Debug.Log(json);
         List<GameInfo> recordinglist = JsonConvert.DeserializeObject<List<GameInfo>>(json);
+        return recordinglist;
+    }
+
+    public List<ResultEntity> D2ResultFromJson(string json)
+    {
+        Debug.Log(json);
+        List<ResultEntity> recordinglist = JsonConvert.DeserializeObject<List<ResultEntity>>(json);
         return recordinglist;
     }
 

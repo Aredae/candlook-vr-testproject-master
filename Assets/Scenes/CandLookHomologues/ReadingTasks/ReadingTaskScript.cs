@@ -26,12 +26,15 @@ public class ReadingTaskScript : MonoBehaviour
     public GameObject longbutton;
 
     public GameObject startReplayButton;
+    public GameObject ExitReplayButton;
+    public GameObject PauseButton;
 
     private int length;
 
     private string language;
 
     private bool started;
+    private bool pause;
     private float timer;
 
     private string init_text;
@@ -54,6 +57,7 @@ public class ReadingTaskScript : MonoBehaviour
         else { replay = false; }
 
         countdowntimer.SetActive(false);
+        pause = false;
         waitrunning = false;
         init_text = text.GetComponent<Text>().text;
         finishedButton.SetActive(false);
@@ -94,10 +98,14 @@ public class ReadingTaskScript : MonoBehaviour
             }
 
             startReplayButton.SetActive(true);
+            ExitReplayButton.SetActive(true);
+            PauseButton.SetActive(false);
         }
         else
         {
             startReplayButton.SetActive(false);
+            ExitReplayButton.SetActive(false);
+            PauseButton.SetActive(false);
             language = "English";
             length = 0;
             
@@ -121,23 +129,26 @@ public class ReadingTaskScript : MonoBehaviour
         if (waitrunning)
         {
             timer += Time.deltaTime;
-            int time = (int)System.Math.Floor(timer);
+            int time = 3-(int)System.Math.Round(timer);
             countdowntimer.GetComponent<Text>().text = "Starting in: " + time;
         }
         if (started)
         {
-            if (replay)
-            {
-                //TODO make gaze visualizers move each frame equal to et data from db
-                //
-                //
-                //
-            }
+            if (!pause) {
+                if (replay)
+                {
+                    //TODO make gaze visualizers move each frame equal to et data from db
+                    //
+                    //
+                    //
+                }
 
 
-            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
-            {
-                recorder.Update();
+                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                {
+                    recorder.Update();
+                }
+
             }
             //record stuff
         }
@@ -149,6 +160,8 @@ public class ReadingTaskScript : MonoBehaviour
         if (replay)
         {
             startReplayButton.SetActive(false);
+            ExitReplayButton.SetActive(false);
+            PauseButton.SetActive(true);
         }
         else
         {
@@ -188,6 +201,8 @@ public class ReadingTaskScript : MonoBehaviour
         if (replay)
         {
             startReplayButton.SetActive(true);
+            ExitReplayButton.SetActive(true);
+            PauseButton.SetActive(false);
         }
         else
         {
@@ -324,6 +339,24 @@ public class ReadingTaskScript : MonoBehaviour
     {
         Destroy(replayobject);
         SceneManager.LoadScene("Replays");
+    }
+
+    public void PauseGame()
+    {
+        
+        if (pause)
+        {
+            PauseButton.GetComponent<Image>().color = shortbutton.GetComponent<Button>().colors.normalColor;
+            pause = false;
+            PauseButton.GetComponent<Text>().text = "Pause";
+        }
+        else
+        {
+            PauseButton.GetComponent<Image>().color = shortbutton.GetComponent<Button>().colors.selectedColor;
+            pause = true;
+            PauseButton.GetComponent<Text>().text = "Resume";
+        }
+        
     }
 
     void OnDestroy()

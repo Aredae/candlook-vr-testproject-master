@@ -33,6 +33,8 @@ public class SmoothPursuitScriot : MonoBehaviour
     public GameObject repetitionText;
 
     public GameObject startReplayButton;
+    public GameObject PauseButton;
+    public GameObject ExitReplayButton;
 
     private Vector3 lrinit_pos;
     private Vector3 rlinit_pos;
@@ -59,6 +61,7 @@ public class SmoothPursuitScriot : MonoBehaviour
     private string[] gameprams;
 
     private Vector3 tempposvector;
+    private bool pause;
 
 
     //private Varjo.XR.VarjoEventManager em;
@@ -66,6 +69,7 @@ public class SmoothPursuitScriot : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        pause = false;
         if(GameObject.Find("DetailForReplay")!= null)
         {
             replay = true;
@@ -141,11 +145,15 @@ public class SmoothPursuitScriot : MonoBehaviour
             }
 
             startReplayButton.SetActive(true);
+            ExitReplayButton.SetActive(true);
+            PauseButton.SetActive(false);
 
         }
         else
         {
             startReplayButton.SetActive(false);
+            ExitReplayButton.SetActive(false);
+            PauseButton.SetActive(false);
             direction = 0;
             speed = 2;
             repetitions = 1;
@@ -233,116 +241,124 @@ public class SmoothPursuitScriot : MonoBehaviour
 
         if (started)
         {
-            //TODO make gaze visualizers move each frame equal to et data from db
-            //
-            //
-            //
 
-
-            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+            if (!pause)
             {
-                recorder.Update();
-            }
-            //DiagSmooth
-            if(gametype == 0)
-            {
-                if(repetitions >= 0)
+                if (replay)
                 {
-                    if (ball.transform.position == endball.transform.position)
-                    {
-                        repetitions--;
-                        if(repetitions != -1)
-                        {
-                            SwitchEndandStart(currentstartpos, currentendpos);
-                            endball.transform.position = currentendpos;
-                            ball.transform.position = currentstartpos;
-                            t = 0;
-                        }
-                    }
-                    t += Time.deltaTime / speed;
-                    ball.transform.position = Vector3.Lerp(currentstartpos, endball.transform.position, t);
+                    //TODO make gaze visualizers move each frame equal to et data from db
+                    //
+                    //
+                    //
                 }
-                else
+                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
                 {
-                    if(direction == 0)
+                    recorder.Update();
+                }
+                //DiagSmooth
+                if (gametype == 0)
+                {
+                    if (repetitions >= 0)
                     {
-                        ball.transform.position = lrinit_pos;
-                        endball.transform.position = lrinit_end_pos;
+                        if (ball.transform.position == endball.transform.position)
+                        {
+                            repetitions--;
+                            if (repetitions != -1)
+                            {
+                                SwitchEndandStart(currentstartpos, currentendpos);
+                                endball.transform.position = currentendpos;
+                                ball.transform.position = currentstartpos;
+                                t = 0;
+                            }
+                        }
+                        t += Time.deltaTime / speed;
+                        ball.transform.position = Vector3.Lerp(currentstartpos, endball.transform.position, t);
                     }
                     else
                     {
-                        ball.transform.position = rlinit_pos;
-                        endball.transform.position = rlinit_end_pos;
+                        if (direction == 0)
+                        {
+                            ball.transform.position = lrinit_pos;
+                            endball.transform.position = lrinit_end_pos;
+                        }
+                        else
+                        {
+                            ball.transform.position = rlinit_pos;
+                            endball.transform.position = rlinit_end_pos;
+                        }
+                        t = 0;
+                        if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                        {
+                            OnDestroy();
+                        }
+                        started = false;
+                        if (!replay)
+                        {
+                            repetitions = (int)repetitionSlider.GetComponent<Slider>().value;
+                            SettingsCanvas.SetActive(true);
+                        }
+                        else
+                        {
+                            startReplayButton.SetActive(true);
+                            ExitReplayButton.SetActive(true);
+                            PauseButton.SetActive(false);
+                            try
+                            {
+                                repetitions = Int32.Parse(gameprams[4]);
+                                Console.WriteLine(repetitions);
+                            }
+                            catch (FormatException)
+                            {
+                                Console.WriteLine($"Unable to parse '{gameprams[0]}'");
+                            }
+                        }
+
                     }
-                    t = 0;
-                    if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
+                }
+                //HorizontalSmooth
+                else
+                {
+                    if (repetitions >= 0)
                     {
-                        OnDestroy();
+                        if (ball.transform.position == endball.transform.position)
+                        {
+                            repetitions--;
+                            if (repetitions != -1)
+                            {
+                                currentstartpos = MoveVertically(currentstartpos);
+                                currenthorizontalendpoint = MoveVertically(currenthorizontalendpoint);
+                                ball.transform.position = currentstartpos;
+                                endball.transform.position = currenthorizontalendpoint;
+                                t = 0;
+                            }
+                        }
+                        t += Time.deltaTime / speed;
+                        ball.transform.position = Vector3.Lerp(currentstartpos, endball.transform.position, t);
                     }
-                    started = false;
-                    if (!replay)
+                    else
                     {
+                        if (direction == 0)
+                        {
+                            ball.transform.position = lrinit_pos;
+                            endball.transform.position = lrinit_end_pos;
+                        }
+                        else
+                        {
+                            ball.transform.position = rlinit_pos;
+                            endball.transform.position = rlinit_end_pos;
+                        }
+                        t = 0;
+                        if (UnityEngine.XR.XRSettings.isDeviceActive)
+                        {
+                            OnDestroy();
+                        }
+                        started = false;
                         repetitions = (int)repetitionSlider.GetComponent<Slider>().value;
                         SettingsCanvas.SetActive(true);
                     }
-                    else
-                    {
-                        startReplayButton.SetActive(true);
-                        try
-                        {
-                            repetitions = Int32.Parse(gameprams[4]);
-                            Console.WriteLine(repetitions);
-                        }
-                        catch (FormatException)
-                        {
-                            Console.WriteLine($"Unable to parse '{gameprams[0]}'");
-                        }
-                    }
-                    
                 }
             }
-            //HorizontalSmooth
-            else
-            {
-                if(repetitions >= 0)
-                {
-                    if(ball.transform.position == endball.transform.position)
-                    {
-                        repetitions--;
-                        if(repetitions != -1)
-                        {
-                            currentstartpos = MoveVertically(currentstartpos);
-                            currenthorizontalendpoint = MoveVertically(currenthorizontalendpoint);
-                            ball.transform.position = currentstartpos;
-                            endball.transform.position = currenthorizontalendpoint;
-                            t = 0;
-                        }
-                    }
-                    t += Time.deltaTime / speed;
-                    ball.transform.position = Vector3.Lerp(currentstartpos, endball.transform.position, t);
-                }
-                else
-                {
-                    if (direction == 0)
-                    {
-                        ball.transform.position = lrinit_pos;
-                        endball.transform.position = lrinit_end_pos;
-                    }
-                    else
-                    {
-                        ball.transform.position = rlinit_pos;
-                        endball.transform.position = rlinit_end_pos;
-                    }
-                    t = 0;
-                    if (UnityEngine.XR.XRSettings.isDeviceActive)
-                    {
-                        OnDestroy();
-                    }
-                    started = false;
-                    repetitions = (int)repetitionSlider.GetComponent<Slider>().value;
-                    SettingsCanvas.SetActive(true);
-                }
-            }
+            
         }
     }
 
@@ -430,6 +446,12 @@ public class SmoothPursuitScriot : MonoBehaviour
             repetitions = (int)repetitionSlider.GetComponent<Slider>().value;
             SettingsCanvas.SetActive(false);
         }
+        else
+        {
+            startReplayButton.SetActive(false);
+            ExitReplayButton.SetActive(false);
+            PauseButton.SetActive(true);
+        }
         started = true;
     }
 
@@ -438,6 +460,24 @@ public class SmoothPursuitScriot : MonoBehaviour
     {
         Destroy(replayobject);
         SceneManager.LoadScene("Replays");
+    }
+
+    public void PauseGame()
+    {
+
+        if (pause)
+        {
+            PauseButton.GetComponent<Image>().color = startReplayButton.GetComponent<Button>().colors.normalColor;
+            pause = false;
+            PauseButton.GetComponent<Text>().text = "Pause";
+        }
+        else
+        {
+            PauseButton.GetComponent<Image>().color = startReplayButton.GetComponent<Button>().colors.selectedColor;
+            pause = true;
+            PauseButton.GetComponent<Text>().text = "Resume";
+        }
+
     }
 
     void OnDestroy()
