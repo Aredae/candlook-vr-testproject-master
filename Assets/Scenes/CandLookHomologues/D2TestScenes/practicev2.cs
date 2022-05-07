@@ -617,7 +617,7 @@ public class practicev2 : MonoBehaviour
     {
         for (int i = 0; i < numletters; i++)
         {
-            canvas.transform.GetChild(i + 1).gameObject.SetActive(false);
+          canvas.transform.GetChild(i + 1).gameObject.SetActive(false);
         }
     }
 
@@ -625,21 +625,27 @@ public class practicev2 : MonoBehaviour
     {
         for (int i = 0; i < numletters; i++)
         {
-            canvas.transform.GetChild(i + 1).gameObject.SetActive(true);
+           canvas.transform.GetChild(i + 1).gameObject.SetActive(true);
         }
     }
 
     public void hideAllCanvasElements() { 
         for(int i = 1; i<canvas.transform.childCount; i++)
         {
-            canvas.transform.GetChild(i).gameObject.SetActive(false);
+            if (i + 1 < canvas.transform.childCount)
+            {
+                canvas.transform.GetChild(i).gameObject.SetActive(false);
+            }
         }
     }
     public void showAllCanvasElements()
     {
         for (int i = 1; i < canvas.transform.childCount; i++)
         {
-            canvas.transform.GetChild(i).gameObject.SetActive(true);
+            if (i < canvas.transform.childCount)
+            {
+                canvas.transform.GetChild(i).gameObject.SetActive(true);
+            }
         }
     }
 

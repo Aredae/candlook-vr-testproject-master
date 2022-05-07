@@ -64,6 +64,10 @@ public class SmoothPursuitScriot : MonoBehaviour
     private bool pause;
     public int subject_id;
     private bool usersignedinn;
+    private bool waitrunning;
+    private float timer;
+
+    public GameObject countdowntimer;
 
 
     //private Varjo.XR.VarjoEventManager em;
@@ -94,6 +98,9 @@ public class SmoothPursuitScriot : MonoBehaviour
         endball.SetActive(false);
         startballrl.SetActive(false);
         endballrl.SetActive(false);
+        countdowntimer.SetActive(false);
+        waitrunning = false;
+        timer = 0;
         lrinit_pos = ball.transform.position;
         rlinit_pos = startballrl.transform.position;
         lrinit_end_pos = endball.transform.position;
@@ -252,6 +259,13 @@ public class SmoothPursuitScriot : MonoBehaviour
             Destroy(xrrig.GetComponent<SimpleSmoothMouseLook>());
         }
 
+        if (waitrunning)
+        {
+            timer += Time.deltaTime;
+            int time = 3 - (int)System.Math.Round(timer);
+            countdowntimer.GetComponent<Text>().text = "Starting in: " + time;
+        }
+
         if (started)
         {
 
@@ -374,10 +388,14 @@ public class SmoothPursuitScriot : MonoBehaviour
             
         }
     }
-
-    public void startGame()
+    IEnumerator waitAndApplySettings()
     {
-        if(direction == 0)
+        waitrunning = true;
+        countdowntimer.SetActive(true);
+        yield return new WaitForSeconds(3);
+        waitrunning = false;
+        countdowntimer.SetActive(false);
+        if (direction == 0)
         {
             if (gametype == 1)
             {
@@ -417,7 +435,7 @@ public class SmoothPursuitScriot : MonoBehaviour
         }
         else
         {
-            if(gametype == 1)
+            if (gametype == 1)
             {
                 ball.transform.position = rlinit_pos;
                 verticalsteps = (int)repetitionSlider.GetComponent<Slider>().value;
@@ -441,7 +459,7 @@ public class SmoothPursuitScriot : MonoBehaviour
                 endball.transform.position = rlinit_end_pos;
                 currentendpos = rlinit_end_pos;
                 currentstartpos = rlinit_pos;
-                if (UnityEngine.XR.XRSettings.isDeviceActive &&!replay && usersignedinn)
+                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                 {
                     recorder = new GameRecorder(new Util.Model.Game
                     {
@@ -465,7 +483,22 @@ public class SmoothPursuitScriot : MonoBehaviour
             ExitReplayButton.SetActive(false);
             PauseButton.SetActive(true);
         }
+        timer = 0;
         started = true;
+    }
+    public void startGame()
+    {
+        StartCoroutine(waitAndApplySettings());
+        if (replay)
+        {
+            startReplayButton.SetActive(false);
+            ExitReplayButton.SetActive(false);
+            PauseButton.SetActive(true);
+        }
+        else
+        {
+            SettingsCanvas.SetActive(false);
+        }
     }
 
 

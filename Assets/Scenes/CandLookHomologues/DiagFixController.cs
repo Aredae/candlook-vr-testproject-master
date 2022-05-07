@@ -70,6 +70,11 @@ public class DiagFixController : MonoBehaviour
     private bool pause;
     public int subject_id;
     private bool usersignedinn;
+    public GameObject pointers;
+    private bool waitrunning;
+    private float waitingtimer;
+
+    public GameObject countdowntimer;
 
     //private Varjo.XR.VarjoEventManager em;
 
@@ -92,6 +97,9 @@ public class DiagFixController : MonoBehaviour
             usersignedinn = false;
             //Noone is logged in and info should not be saved
         }
+        countdowntimer.SetActive(false);
+        waitrunning = false;
+        waitingtimer = 0;
         started = false;
         endball.SetActive(false);
         startballrl.SetActive(false);
@@ -312,7 +320,12 @@ public class DiagFixController : MonoBehaviour
             }
         }
         //DiagFixLR
-
+        if (waitrunning)
+        {
+            waitingtimer += Time.deltaTime;
+            int time = 3 - (int)System.Math.Round(waitingtimer);
+            countdowntimer.GetComponent<Text>().text = "Starting in: " + time;
+        }
         if (started)
         {
             if (!pause)
@@ -371,6 +384,7 @@ public class DiagFixController : MonoBehaviour
                         N_repetitions = 2;
                         N_forward_steps = 0;
                         N_Back_steps = 0;
+                        timer = 0;
                         if (!replay)
                         {
                             SettingsCanvas.SetActive(true);
@@ -381,6 +395,7 @@ public class DiagFixController : MonoBehaviour
                             ExitReplayButton.SetActive(true);
                             PauseButton.SetActive(false);
                         }
+                        pointers.SetActive(true);
                     }
                 }
 
@@ -444,6 +459,7 @@ public class DiagFixController : MonoBehaviour
                                 ExitReplayButton.SetActive(true);
                                 PauseButton.SetActive(false);
                             }
+                            pointers.SetActive(true);
                             timer = 0;
                         }
                     }
@@ -455,9 +471,13 @@ public class DiagFixController : MonoBehaviour
 
     }
 
-    public void startGame()
+    IEnumerator waitAndApplySettings()
     {
-        
+        waitrunning = true;
+        countdowntimer.SetActive(true);
+        yield return new WaitForSeconds(3);
+        waitrunning = false;
+        countdowntimer.SetActive(false);
         if (gametype == 0)
         {
             //ball.transform.position = lrinit_pos;
@@ -474,7 +494,7 @@ public class DiagFixController : MonoBehaviour
                 }, et, subject_id);
             }
         }
-        else if(gametype == 1)
+        else if (gametype == 1)
         {
             //ball.transform.position = rlinit_pos;
             init_pos = startballrl.transform.position;
@@ -500,7 +520,7 @@ public class DiagFixController : MonoBehaviour
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
-                    Name = "Fixation_Vertical_Left Right_" + WaitingTime + "_Seconds Per Fixation_" + numstepsslidervalue + "_Vertical Steps_"+ horizontalsteps +"_Horizontal Steps",
+                    Name = "Fixation_Vertical_Left Right_" + WaitingTime + "_Seconds Per Fixation_" + numstepsslidervalue + "_Vertical Steps_" + horizontalsteps + "_Horizontal Steps",
                     Version = 1,
                 }, et, subject_id);
             }
@@ -516,9 +536,26 @@ public class DiagFixController : MonoBehaviour
         }
         else
         {
+            pointers.SetActive(false);
             SettingsCanvas.SetActive(false);
         }
+        waitingtimer = 0;
         started = true;
+    }
+
+    public void startGame()
+    {
+        StartCoroutine(waitAndApplySettings());
+        if (replay)
+        {
+            startReplayButton.SetActive(false);
+            ExitReplayButton.SetActive(false);
+            PauseButton.SetActive(true);
+        }
+        else
+        {
+            SettingsCanvas.SetActive(false);
+        }
     }
 
     public void ExitReplay()

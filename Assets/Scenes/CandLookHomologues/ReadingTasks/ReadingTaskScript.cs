@@ -346,6 +346,7 @@ public class ReadingTaskScript : MonoBehaviour
         {
             finishedButton.SetActive(true);
         }
+        timer = 0;
         started = true;
     }
 
