@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -5,10 +6,12 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Util;
+using Util.Model;
 using Varjo.XR;
 
 public class SmoothPursuitScriot : MonoBehaviour
 {
+    WebRequest webrequest = new WebRequest();
     public GameObject ball;
     public GameObject endball;
     public GameObject startballrl;
@@ -68,6 +71,8 @@ public class SmoothPursuitScriot : MonoBehaviour
     private float timer;
 
     public GameObject countdowntimer;
+    private Action<string> _createGetTaskGazeDataCallback;
+    private Recording currentrecdata;
 
 
     //private Varjo.XR.VarjoEventManager em;
@@ -164,6 +169,13 @@ public class SmoothPursuitScriot : MonoBehaviour
                 gametype = 1;
             }
 
+            _createGetTaskGazeDataCallback = (jsonArray) =>
+            {
+                Util.Model.Recording rec = JsonConvert.DeserializeObject<Util.Model.Recording>(jsonArray);
+                currentrecdata = rec;
+            };
+            GetGazeData(GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>().GetId(), GameObject.Find("DetailForReplay").GetComponent<GameInfoMono>().timestamp);
+
             startReplayButton.SetActive(true);
             ExitReplayButton.SetActive(true);
             PauseButton.SetActive(false);
@@ -200,6 +212,10 @@ public class SmoothPursuitScriot : MonoBehaviour
 
     }
 
+    public void GetGazeData(int userid, DateTime timestamp)
+    {
+        StartCoroutine(webrequest.getGazeDataForRecording("http://localhost/getGazeDataForTask.php", userid, timestamp, _createGetTaskGazeDataCallback));
+    }
     public void DiagonalPressed()
     {
         gametype = 0;

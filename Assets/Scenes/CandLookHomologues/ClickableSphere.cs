@@ -7,12 +7,12 @@ public class ClickableSphere : MonoBehaviour
 
     public GameObject sphere;
     public double currentarcsecs = 90 * 3600;
-    public double currentradius = 0.25;
+    public double currentradius = 0.5;
     public double arcsecsscaleronwin = 2;
     public double arcsecsscaleronL = 2;
     public const double arcsecmin = 300;
-    public const double arcsecmax = 3800;
-    public const double startingarcsecs= 3800;
+    public const double arcsecmax = 3600;
+    public const double startingarcsecs= 3600;
 
     // Start is called before the first frame update
     void Start()

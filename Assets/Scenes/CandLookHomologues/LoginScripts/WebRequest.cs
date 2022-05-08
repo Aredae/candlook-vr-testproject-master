@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -152,5 +153,39 @@ public class WebRequest
             }
         }
     }
-    
+
+    public IEnumerator getGazeDataForRecording(string uri, int userid, DateTime timestamp, System.Action<string> callback)
+    {
+        WWWForm myform = new WWWForm();
+        myform.AddField("subject_id", userid);
+        myform.AddField("recordingtime", timestamp.ToString());
+        using (UnityWebRequest webRequest = UnityWebRequest.Post(uri, myform))
+        {
+            // Request and wait for the desired page.
+            webRequest.useHttpContinue = false;
+            yield return webRequest.SendWebRequest();
+
+            string[] pages = uri.Split('/');
+            int page = pages.Length - 1;
+
+            switch (webRequest.result)
+            {
+                case UnityWebRequest.Result.ConnectionError:
+                case UnityWebRequest.Result.DataProcessingError:
+                    Debug.LogError(pages[page] + ": Error: " + webRequest.error);
+                    break;
+                case UnityWebRequest.Result.ProtocolError:
+                    Debug.LogError(pages[page] + ": HTTP Error: " + webRequest.error);
+                    break;
+                case UnityWebRequest.Result.Success:
+                    Debug.Log(pages[page] + ":\nReceived: " + webRequest.downloadHandler.text);
+                    string jsonArray = webRequest.downloadHandler.text;
+                    Debug.Log(jsonArray);
+                    callback(jsonArray);
+                    //call callback function to pass results
+                    break;
+            }
+        }
+    }
+
 }

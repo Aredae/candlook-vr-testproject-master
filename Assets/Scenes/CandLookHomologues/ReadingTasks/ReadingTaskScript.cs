@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,8 +10,11 @@ using Varjo.XR;
 
 public class ReadingTaskScript : MonoBehaviour
 {
-
+    WebRequest webrequest = new WebRequest();
     public GameObject xrrig;
+
+    public GameObject leftgazepoint;
+    public GameObject rightgazepoint;
 
     public GameObject dropdownlanguage;
 
@@ -28,6 +33,7 @@ public class ReadingTaskScript : MonoBehaviour
     public GameObject startReplayButton;
     public GameObject ExitReplayButton;
     public GameObject PauseButton;
+    private int currentframefordata;
 
     private int length;
 
@@ -48,6 +54,8 @@ public class ReadingTaskScript : MonoBehaviour
     private string[] gameprams;
     public int subject_id;
     private bool usersignedinn;
+    private System.Action<string> _createGetTaskGazeDataCallback;
+    private Util.Model.Recording currentrecdata;
 
     // Start is called before the first frame update
     void Start()
@@ -111,6 +119,12 @@ public class ReadingTaskScript : MonoBehaviour
                 Debug.Log("Could not find length");
             }
 
+            _createGetTaskGazeDataCallback = (jsonArray) =>
+            {
+                Util.Model.Recording rec = JsonConvert.DeserializeObject<Util.Model.Recording>(jsonArray);
+                currentrecdata = rec;
+            };
+            GetGazeData(GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>().GetId(), GameObject.Find("DetailForReplay").GetComponent<GameInfoMono>().timestamp);
             startReplayButton.SetActive(true);
             ExitReplayButton.SetActive(true);
             PauseButton.SetActive(false);
@@ -135,6 +149,11 @@ public class ReadingTaskScript : MonoBehaviour
             et = new VarjoET(Camera.main);
             //GazeVisualizer.spawn(et);
         }
+        if (!replay)
+        {
+            leftgazepoint.SetActive(false);
+            rightgazepoint.SetActive(false);
+        }
     }
 
     // Update is called once per frame
@@ -151,6 +170,13 @@ public class ReadingTaskScript : MonoBehaviour
             if (!pause) {
                 if (replay)
                 {
+                    /*
+                    Eye left = new Eye();
+                    Eye right = new Eye();
+                    Eye average = new Eye();
+                    EyeData eyeData = new EyeData(true, currentrecdata.TimestampNS[currentframefordata],left, right, average, );
+                    leftgazepoint.transform.position = eyeData.left.position + eyeData.approxFocusDist * eyeData.left.gazeDirection;
+                    */
                     //TODO make gaze visualizers move each frame equal to et data from db
                     //
                     //
@@ -166,6 +192,10 @@ public class ReadingTaskScript : MonoBehaviour
             }
             //record stuff
         }
+    }
+    public void GetGazeData(int userid, DateTime timestamp)
+    {
+        StartCoroutine(webrequest.getGazeDataForRecording("http://localhost/getGazeDataForTask.php", userid, timestamp, _createGetTaskGazeDataCallback));
     }
 
     public void startGame()
