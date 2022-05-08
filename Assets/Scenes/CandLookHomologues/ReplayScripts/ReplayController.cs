@@ -35,12 +35,17 @@ public class ReplayController : MonoBehaviour
     private GameObject previouslySelectedGameObject;
     public GameObject DetailsForReplay;
     private GameObject lastbutton;
+    private Subjectinfo subject;
     private int i = 0;
 
     // Start is called before the first frame update
     void Start()
     {
-        usertext.transform.GetComponent<Text>().text += " " + Subjectinfo.instance.GetName();
+        if (GameObject.Find("SubjectInfo") != null)
+        {
+            subject = GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>();
+            usertext.transform.GetComponent<Text>().text += " " + subject.GetName();
+        }
 
         TaskNameText.SetActive(false);
         RecordingTimeText.SetActive(false);
@@ -124,8 +129,24 @@ public class ReplayController : MonoBehaviour
 
         };
 
+        if (GameObject.Find("SubjectInfo") != null)
+        {
+            GetRecordings(subject.GetId());
+            GetD2Results(subject.GetId());
+        }
     }
 
+    public void GetRecordings(int userid)
+    {
+        StartCoroutine(webrequest.getRecordingsFromUser("http://localhost/GetRecordingsFromUser.php", userid, _createGetTaskNamesCallback));
+    }
+
+    public void GetD2Results(int userid)
+    {
+        StartCoroutine(webrequest.getRecordingsFromUser("http://localhost/getD2ResultsFromUser.php", userid, _createGetD2ResultsCallback));
+    }
+
+    
     void D2ResultButtonClicked()
     {
         ToReplayButton.SetActive(false);
