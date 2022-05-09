@@ -29,6 +29,7 @@ namespace efcore_workaround.Migrations
                     game_name = table.Column<string>(nullable: true),
                     game_version = table.Column<long>(nullable: true),
                     subject_id = table.Column<int>(nullable: true),
+                    recordingtime = table.Column<string>(nullable: true),
                     timestamp_ns = table.Column<List<long>>(nullable: true),
                     left_eye_pos_x = table.Column<List<float>>(nullable: true),
                     left_eye_pos_y = table.Column<List<float>>(nullable: true),

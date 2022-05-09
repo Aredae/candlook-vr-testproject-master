@@ -13,17 +13,19 @@ namespace Util
     {
         private Model.Game game;
         private int subject_id;
+        private string recordingtime;
         private EyeTracker et;
         private DB db;
         private Model.Recording recording;
         private bool disposed = false;
         private bool committed = false;
 
-        public GameRecorder(Model.Game game, EyeTracker et, int sid)
+        public GameRecorder(Model.Game game, EyeTracker et, int sid, string recordingtime)
         {
             this.et = et;
             this.game = game;
             this.subject_id = sid;
+            this.recordingtime = recordingtime;
             this.db = new DB();
             bool done = false;
             int count = 0;
@@ -55,7 +57,7 @@ namespace Util
                     }
                 }
             }
-            this.recording = new Model.Recording { Game = game, Subject_id = subject_id};
+            this.recording = new Model.Recording { Game = game, Subject_id = subject_id, recordingtime = recordingtime};
         }
 
         // KLUDGE: must be called every frame => couples tightly to implementation of EyeTracker

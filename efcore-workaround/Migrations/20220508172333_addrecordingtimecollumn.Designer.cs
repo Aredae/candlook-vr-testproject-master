@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Util;
@@ -9,9 +10,10 @@ using Util;
 namespace efcore_workaround.Migrations
 {
     [DbContext(typeof(DB))]
-    partial class DBModelSnapshot : ModelSnapshot
+    [Migration("20220508172333_addrecordingtimecollumn")]
+    partial class addrecordingtimecollumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -130,10 +132,6 @@ namespace efcore_workaround.Migrations
                     b.Property<List<long>>("TimestampNS")
                         .HasColumnName("timestamp_ns")
                         .HasColumnType("bigint[]");
-
-                    b.Property<List<float>>("approxFocusDist")
-                        .HasColumnName("approx_focus_dist")
-                        .HasColumnType("real[]");
 
                     b.Property<string>("recordingtime")
                         .HasColumnName("recordingtime")

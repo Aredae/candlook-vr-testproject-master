@@ -16,6 +16,8 @@ public class DiagFixController : MonoBehaviour
     public GameObject endball;
     public GameObject startballrl;
     public GameObject endballrl;
+    public GameObject leftgazepoint;
+    public GameObject rightgazepoint;
 
     public GameObject xrrig;
 
@@ -80,15 +82,22 @@ public class DiagFixController : MonoBehaviour
     private Action<string> _createGetTaskGazeDataCallback;
     private Recording currentrecdata;
 
+    private DB db;
+    private int currentframefordata;
+    private float nanosecondssincelastupdate;
+
     //private Varjo.XR.VarjoEventManager em;
 
     // Start is called before the first frame update
     void Start()
     {
-        if (GameObject.Find("DetailForReplay") != null)
+        currentframefordata = 0;
+        nanosecondssincelastupdate = 0;
+        if (GameObject.Find("DetailsForReplay") != null)
         {
+            db = new DB();
             replay = true;
-            replayobject = GameObject.Find("DetailForReplay");
+            replayobject = GameObject.Find("DetailsForReplay").gameObject;
         }
         else { replay = false; }
         if(GameObject.Find("SubjectInfo") != null)
@@ -135,7 +144,7 @@ public class DiagFixController : MonoBehaviour
             SettingsCanvas.SetActive(false);
 
             //Set all settings to that of replay
-            gameprams = replayobject.GetComponent<GameInfo>().GameName.Split('_');
+            gameprams = replayobject.GetComponent<GameInfoMono>().GameName.Split('_');
             if (gameprams[1] + "_" + gameprams[2] == "Diagonal_Left Right")
             {
                 gametype = 0;
@@ -188,10 +197,14 @@ public class DiagFixController : MonoBehaviour
 
             _createGetTaskGazeDataCallback = (jsonArray) =>
             {
-                Util.Model.Recording rec = JsonConvert.DeserializeObject<Util.Model.Recording>(jsonArray);
-                currentrecdata = rec;
+                db.Database.BeginTransaction();
+                something.ThrowawayIntTye s = JsonConvert.DeserializeObject<something.ThrowawayIntTye>(jsonArray);
+
+                currentrecdata = db.Recordings.Find(Int32.Parse(s.recording_id));
+                db.Dispose();
             };
-            GetGazeData(GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>().GetId(), GameObject.Find("DetailForReplay").GetComponent<GameInfoMono>().timestamp);
+
+            GetGazeData(GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>().GetId(), GameObject.Find("DetailsForReplay").GetComponent<GameInfoMono>().timestamp);
 
             startReplayButton.SetActive(true);
             ExitReplayButton.SetActive(true);
@@ -238,7 +251,7 @@ public class DiagFixController : MonoBehaviour
 
     }
 
-    public void GetGazeData(int userid, DateTime timestamp)
+    public void GetGazeData(int userid, string timestamp)
     {
         StartCoroutine(webrequest.getGazeDataForRecording("http://localhost/getGazeDataForTask.php", userid, timestamp, _createGetTaskGazeDataCallback));
     }
@@ -327,7 +340,7 @@ public class DiagFixController : MonoBehaviour
             Destroy(xrrig.GetComponent<SimpleSmoothMouseLook>());
         }
 
-
+        /*
         if (UnityEngine.XR.XRSettings.isDeviceActive && !replay)
         {
             if (em.GetButtonDown(0))
@@ -335,6 +348,7 @@ public class DiagFixController : MonoBehaviour
                 canvas.SetActive(false);
             }
         }
+        */
         //DiagFixLR
         if (waitrunning)
         {
@@ -348,7 +362,57 @@ public class DiagFixController : MonoBehaviour
             {
                 if (replay)
                 {
-                    //TODO Move gaze visualizers equal to currentrecdata
+                    if (currentframefordata + 1 == currentrecdata.TimestampNS.Count)
+                    {
+                        
+                    } 
+                    else
+                    {
+                        nanosecondssincelastupdate += Time.deltaTime * 1000000000;
+                        if (currentrecdata.TimestampNS[currentframefordata + 1] - currentrecdata.TimestampNS[currentframefordata] <= nanosecondssincelastupdate)
+                        {
+
+                            try
+                            {
+                                Vector3 leftpositiontest = new Vector3(currentrecdata.LeftEyePosX[currentframefordata], currentrecdata.LeftEyePosY[currentframefordata], currentrecdata.LeftEyePosZ[currentframefordata]);
+                            }
+                            catch (ArgumentOutOfRangeException e)
+                            {
+                                Debug.Log(e);
+
+                            }
+                            Vector3 leftposition = new Vector3(currentrecdata.LeftEyePosX[currentframefordata], currentrecdata.LeftEyePosY[currentframefordata], currentrecdata.LeftEyePosZ[currentframefordata]);
+                            Vector3 rightposition = new Vector3(currentrecdata.RightEyePosX[currentframefordata], currentrecdata.RightEyePosY[currentframefordata], currentrecdata.RightEyePosZ[currentframefordata]);
+                            Vector3 leftgazedir = new Vector3(currentrecdata.LeftGazeDirX[currentframefordata], currentrecdata.LeftGazeDirY[currentframefordata], currentrecdata.LeftGazeDirZ[currentframefordata]);
+                            Vector3 rightgazedir = new Vector3(currentrecdata.RightGazeDirX[currentframefordata], currentrecdata.RightGazeDirY[currentframefordata], currentrecdata.RightGazeDirZ[currentframefordata]);
+                            Vector3 leftgazedirrel = new Vector3(currentrecdata.LeftGazeDirRelX[currentframefordata], currentrecdata.LeftGazeDirRelY[currentframefordata], currentrecdata.LeftGazeDirRelZ[currentframefordata]);
+                            Vector3 rightgazedirrel = new Vector3(currentrecdata.RightGazeDirRelX[currentframefordata], currentrecdata.RightGazeDirRelY[currentframefordata], currentrecdata.RightGazeDirRelZ[currentframefordata]);
+
+                            Eye left = new Eye();
+                            left.position = leftposition;
+                            left.gazeDirection = leftgazedir;
+                            left.gazeDirectionRel = leftgazedirrel;
+                            Eye right = new Eye();
+                            right.position = rightposition;
+                            right.gazeDirection = rightgazedir;
+                            right.gazeDirectionRel = rightgazedirrel;
+                            Eye average = new Eye();
+                            average.position = (rightposition + leftposition) / 2;
+                            average.gazeDirection = (rightgazedir + leftgazedir) / 2;
+                            average.gazeDirectionRel = (rightgazedirrel + leftgazedirrel) / 2;
+                            EyeData eyeData = new EyeData();
+                            eyeData.left = left;
+                            eyeData.right = right;
+                            eyeData.average = average;
+
+                            leftgazepoint.transform.position = eyeData.left.position + currentrecdata.approxFocusDist[currentframefordata] * eyeData.left.gazeDirection;
+                            rightgazepoint.transform.position = eyeData.right.position + currentrecdata.approxFocusDist[currentframefordata] * eyeData.right.gazeDirection;
+                            //GazeVisualizer.spawn
+                            currentframefordata++;
+                            nanosecondssincelastupdate = 0;
+
+                        }
+                    }
                 }
 
 
@@ -407,6 +471,10 @@ public class DiagFixController : MonoBehaviour
                         }
                         else
                         {
+                            Debug.Log(currentframefordata);
+                            Debug.Log(currentrecdata.LeftEyePosX.Count);
+                            currentframefordata = 0;
+                            nanosecondssincelastupdate = 0;
                             startReplayButton.SetActive(true);
                             ExitReplayButton.SetActive(true);
                             PauseButton.SetActive(false);
@@ -471,6 +539,8 @@ public class DiagFixController : MonoBehaviour
                             }
                             else
                             {
+                                currentframefordata = 0;
+                                nanosecondssincelastupdate = 0;
                                 startReplayButton.SetActive(true);
                                 ExitReplayButton.SetActive(true);
                                 PauseButton.SetActive(false);
@@ -507,7 +577,7 @@ public class DiagFixController : MonoBehaviour
                     Name = "Fixation_Diagonal_Left Right_" + WaitingTime + "_Seconds Per Fixation_" + numstepsslidervalue + "_Fixation Steps",
 
                     Version = 1,
-                }, et, subject_id);
+                }, et, subject_id, DateTime.Now.ToString());
             }
         }
         else if (gametype == 1)
@@ -522,7 +592,7 @@ public class DiagFixController : MonoBehaviour
                 {
                     Name = "Fixation_Diagonal_Right Left_" + WaitingTime + "_Seconds Per Fixation_" + numstepsslidervalue + "_Fixation Steps",
                     Version = 1,
-                }, et, subject_id);
+                }, et, subject_id, DateTime.Now.ToString());
             }
         }
         else
@@ -538,7 +608,7 @@ public class DiagFixController : MonoBehaviour
                 {
                     Name = "Fixation_Vertical_Left Right_" + WaitingTime + "_Seconds Per Fixation_" + numstepsslidervalue + "_Vertical Steps_" + horizontalsteps + "_Horizontal Steps",
                     Version = 1,
-                }, et, subject_id);
+                }, et, subject_id, DateTime.Now.ToString());
             }
         }
         float value = numstepsslidervalue;
@@ -587,19 +657,22 @@ public class DiagFixController : MonoBehaviour
         {
             PauseButton.GetComponent<Image>().color = startReplayButton.GetComponent<Button>().colors.normalColor;
             pause = false;
-            PauseButton.GetComponent<Text>().text = "Pause";
+            PauseButton.transform.GetChild(0).GetComponent<Text>().text = "Pause";
         }
         else
         {
             PauseButton.GetComponent<Image>().color = startReplayButton.GetComponent<Button>().colors.selectedColor;
             pause = true;
-            PauseButton.GetComponent<Text>().text = "Resume";
+            PauseButton.transform.GetChild(0).GetComponent<Text>().text = "Resume";
         }
 
     }
 
     void OnDestroy()
     {
-        recorder.Commit();
+        if(recorder != null)
+        {
+            recorder.Commit();
+        }
     }
 }

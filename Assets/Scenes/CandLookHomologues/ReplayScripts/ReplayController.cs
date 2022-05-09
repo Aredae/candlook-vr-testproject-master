@@ -36,11 +36,12 @@ public class ReplayController : MonoBehaviour
     public GameObject DetailsForReplay;
     private GameObject lastbutton;
     private Subjectinfo subject;
-    private int i = 0;
+    private int i;
 
     // Start is called before the first frame update
     void Start()
     {
+        i = 0;
         if (GameObject.Find("SubjectInfo") != null)
         {
             subject = GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>();
@@ -68,28 +69,49 @@ public class ReplayController : MonoBehaviour
         _createGetTaskNamesCallback = (jsonArray) => {
             //Separate entries and store in array
             List<GameInfo> recordingslist = GameInfoFromJson(jsonArray);
-            foreach(GameInfo g in recordingslist)
+            Debug.Log(recordingslist[0].ToString());
+            if(recordingslist != null)
             {
-                //Generate Button for each game
-                GameObject newButton = DefaultControls.CreateButton(
-                new DefaultControls.Resources()
-                );
-                newButton.transform.SetParent(Canvas.transform, false);
-                newButton.transform.position = initbutton.transform.position;
-                newButton.transform.position = new Vector3(newButton.transform.position.x, newButton.transform.position.y - newButton.GetComponent<RectTransform>().rect.height*i, newButton.transform.position.z);
-                newButton.GetComponent<Text>().text = g.GameName + "Timestamp: " + g.timestamp;
-                //Add differnt OnClick Events for eacn button
-                newButton.GetComponent<Button>().onClick.AddListener(ButtonClickEvent);
-                newButton.AddComponent<GameInfoMono>();
-                newButton.GetComponent<GameInfoMono>().GameName = g.GameName;
-                newButton.GetComponent<GameInfoMono>().Version = g.Version;
-                newButton.GetComponent<GameInfoMono>().timestamp = g.timestamp;
-                if(i == recordingslist.Count-1)
+                foreach (GameInfo g in recordingslist)
                 {
-                    lastbutton = newButton;
+                    //Generate Button for each game
+                    GameObject newButton = DefaultControls.CreateButton(
+                    new DefaultControls.Resources()
+                    );
+                    newButton.transform.SetParent(Canvas.transform, false);
+                    newButton.transform.position = initbutton.transform.position;
+                    newButton.GetComponent<RectTransform>().sizeDelta = new Vector2(initbutton.GetComponent<RectTransform>().rect.width, initbutton.GetComponent<RectTransform>().rect.height);
+
+                    newButton.transform.position = new Vector3(initbutton.transform.position.x, initbutton.transform.position.y - (initbutton.GetComponent<RectTransform>().rect.height *i)/200, initbutton.transform.position.z);
+                    string[] stringtab = g.game_name.Split('_');
+                    Debug.Log(stringtab[0]);
+                    try
+                    {
+                        newButton.transform.GetChild(0).GetComponent<Text>().text = stringtab[0] + " Timestamp: " + g.recordingtime;
+                        newButton.transform.GetChild(0).GetComponent<Text>().alignment = TextAnchor.MiddleCenter;
+                        newButton.transform.GetChild(0).GetComponent<Text>().horizontalOverflow = HorizontalWrapMode.Overflow;
+                    }
+                    catch (NullReferenceException e)
+                    {
+                        Debug.Log(newButton.GetComponent<Text>().text);
+                    }
+
+                    //Add differnt OnClick Events for eacn button
+                    newButton.GetComponent<Button>().onClick.AddListener(ButtonClickEvent);
+                    newButton.AddComponent<GameInfoMono>();
+                    newButton.GetComponent<GameInfoMono>().GameName = g.game_name;
+                    newButton.GetComponent<GameInfoMono>().Version = g.game_version;
+                    newButton.GetComponent<GameInfoMono>().timestamp = g.recordingtime;
+                    
+                    if (i == recordingslist.Count - 1)
+                    {
+                        lastbutton = newButton;
+                    }
+                    
+                    i++;
                 }
-                i++;
             }
+            
         };
 
         //returns all d2 results, enter d2 results after everything else?
@@ -97,36 +119,39 @@ public class ReplayController : MonoBehaviour
         _createGetD2ResultsCallback = (jsonArray) =>
         {
             List<ResultEntity> d2resultlist = D2ResultFromJson(jsonArray);
-            foreach(ResultEntity r in d2resultlist) {
-                GameObject newButton = DefaultControls.CreateButton(
-                    new DefaultControls.Resources()
-                    );
-                newButton.transform.SetParent(Canvas.transform, false);
-                newButton.transform.position = lastbutton.transform.position;
-                newButton.transform.position = new Vector3(newButton.transform.position.x, newButton.transform.position.y - newButton.GetComponent<RectTransform>().rect.height * i, newButton.transform.position.z);
-                newButton.GetComponent<Text>().text = "D2 test, Recorded on:" + r.start_date;
-                newButton.GetComponent<Button>().onClick.AddListener(D2ResultButtonClicked);
-                newButton.AddComponent<ResultEntityMono>();
-                newButton.GetComponent<ResultEntityMono>().subject_id = r.subject_id;
-                newButton.GetComponent<ResultEntityMono>().notes = r.notes;
-                newButton.GetComponent<ResultEntityMono>().start_date = r.start_date;
-                newButton.GetComponent<ResultEntityMono>().tn = r.tn;
-                newButton.GetComponent<ResultEntityMono>().e = r.e;
-                newButton.GetComponent<ResultEntityMono>().tn_e = r.tn_e;
-                newButton.GetComponent<ResultEntityMono>().e1 = r.e1;
-                newButton.GetComponent<ResultEntityMono>().e2 = r.e2;
-                newButton.GetComponent<ResultEntityMono>().e_percent = r.e_percent;
-                newButton.GetComponent<ResultEntityMono>().cp = r.cp;
-                newButton.GetComponent<ResultEntityMono>().fr = r.fr;
-                newButton.GetComponent<ResultEntityMono>().ed = r.ed;
-                newButton.GetComponent<ResultEntityMono>().d2 = r.d2;
-                if (i == d2resultlist.Count - 1)
+            if(d2resultlist != null)
+            {
+                foreach (ResultEntity r in d2resultlist)
                 {
-                    lastbutton = newButton;
+                    GameObject newButton = DefaultControls.CreateButton(
+                        new DefaultControls.Resources()
+                        );
+                    newButton.transform.SetParent(Canvas.transform, false);
+                    newButton.transform.position = lastbutton.transform.position;
+                    initbutton.transform.position = new Vector3(initbutton.transform.position.x, initbutton.transform.position.y - (50 * i), initbutton.transform.position.z);
+                    newButton.GetComponent<Text>().text = "D2 test, Recorded on:" + r.start_date;
+                    newButton.GetComponent<Button>().onClick.AddListener(D2ResultButtonClicked);
+                    newButton.AddComponent<ResultEntityMono>();
+                    newButton.GetComponent<ResultEntityMono>().subject_id = r.subject_id;
+                    newButton.GetComponent<ResultEntityMono>().notes = r.notes;
+                    newButton.GetComponent<ResultEntityMono>().start_date = r.start_date;
+                    newButton.GetComponent<ResultEntityMono>().tn = r.tn;
+                    newButton.GetComponent<ResultEntityMono>().e = r.e;
+                    newButton.GetComponent<ResultEntityMono>().tn_e = r.tn_e;
+                    newButton.GetComponent<ResultEntityMono>().e1 = r.e1;
+                    newButton.GetComponent<ResultEntityMono>().e2 = r.e2;
+                    newButton.GetComponent<ResultEntityMono>().e_percent = r.e_percent;
+                    newButton.GetComponent<ResultEntityMono>().cp = r.cp;
+                    newButton.GetComponent<ResultEntityMono>().fr = r.fr;
+                    newButton.GetComponent<ResultEntityMono>().ed = r.ed;
+                    newButton.GetComponent<ResultEntityMono>().d2 = r.d2;
+                    if (i == d2resultlist.Count - 1)
+                    {
+                        lastbutton = newButton;
+                    }
+                    i++;
                 }
-                i++;
             }
-
         };
 
         if (GameObject.Find("SubjectInfo") != null)
@@ -193,7 +218,7 @@ public class ReplayController : MonoBehaviour
         RecordingTimeText.GetComponent<Text>().text = "Timestamp: " + EventSystem.current.currentSelectedGameObject.GetComponent<GameInfoMono>().timestamp;
         Versiontext.GetComponent<Text>().text = "Task Version: " + EventSystem.current.currentSelectedGameObject.GetComponent<GameInfoMono>().Version;
 
-        if (gameparameters[0] == "SmoothPursuit")
+        if (gameparameters[0] == "Smooth Pursuit")
         {
             ExtraInfo1Text.GetComponent<Text>().text = "Direction: " + gameparameters[1];
             ExtraInfo2Text.GetComponent<Text>().text = "Start and Endpoint: " + gameparameters[2];
@@ -201,7 +226,7 @@ public class ReplayController : MonoBehaviour
             ExtraInfo4Text.GetComponent<Text>().text = "Repetitions: " + gameparameters[5];
             ToReplayButton.GetComponent<Button>().onClick.AddListener(GoToReplay);
         }
-        else if (gameparameters[0] == "ReadingTask")
+        else if (gameparameters[0] == "Reading Task")
         {
             ExtraInfo1Text.GetComponent<Text>().text = "Language: " + gameparameters[2];
             ExtraInfo2Text.GetComponent<Text>().text = "Length: " + gameparameters[1];
@@ -262,12 +287,12 @@ public class ReplayController : MonoBehaviour
         DetailsForReplay.GetComponent<GameInfoMono>().GameName = g.GameName;
         DetailsForReplay.GetComponent<GameInfoMono>().Version = g.Version;
         DetailsForReplay.GetComponent<GameInfoMono>().timestamp = g.timestamp;
-        if (gameparameters[0] == "SmoothPursuit")
+        if (gameparameters[0] == "Smooth Pursuit")
         {
             DontDestroyOnLoad(DetailsForReplay);
             SceneManager.LoadScene("SmoothPursuitScene");
         }
-        else if (gameparameters[0] == "ReadingTask")
+        else if (gameparameters[0] == "Reading Task")
         {
             DontDestroyOnLoad(DetailsForReplay);
             SceneManager.LoadScene("ReadingScene");
@@ -303,15 +328,6 @@ public class ReplayController : MonoBehaviour
         Debug.Log(json);
         List<ResultEntity> recordinglist = JsonConvert.DeserializeObject<List<ResultEntity>>(json);
         return recordinglist;
-    }
-
-    public void GetTaskNamesFromRecordingsOfUser(int userid, System.DateTime starttime)
-    {
-        //StartCoroutine(webrequest.GetResultsFromSubject("http://158.37.193.176/SaveNewD2Score.php", resultsobject, _createSaveCallback));
-    }
-    public void GetETResults(int userid, string gamename, int version, System.DateTime starttime)
-    {
-        //StartCoroutine(webrequest.GetResultsFromSubject("http://158.37.193.176/SaveNewD2Score.php", resultsobject, _createSaveCallback));
     }
 
     public void CreateButton(Transform panel, Vector3 position, Vector2 size, UnityEngine.Events.UnityAction method)

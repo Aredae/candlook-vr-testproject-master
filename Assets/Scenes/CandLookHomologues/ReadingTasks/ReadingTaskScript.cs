@@ -1,3 +1,5 @@
+using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.LinearAlgebra.Complex;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -7,6 +9,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Util;
 using Varjo.XR;
+using something;
 
 public class ReadingTaskScript : MonoBehaviour
 {
@@ -34,6 +37,7 @@ public class ReadingTaskScript : MonoBehaviour
     public GameObject ExitReplayButton;
     public GameObject PauseButton;
     private int currentframefordata;
+    private DB db;
 
     private int length;
 
@@ -56,14 +60,18 @@ public class ReadingTaskScript : MonoBehaviour
     private bool usersignedinn;
     private System.Action<string> _createGetTaskGazeDataCallback;
     private Util.Model.Recording currentrecdata;
+    private float nanosecondssincelastupdate;
+
 
     // Start is called before the first frame update
     void Start()
     {
-        if (GameObject.Find("DetailForReplay") != null)
+        currentframefordata = 0;
+        if (GameObject.Find("DetailsForReplay") != null)
         {
+            db = new DB();
             replay = true;
-            replayobject = GameObject.Find("DetailForReplay");
+            replayobject = GameObject.Find("DetailsForReplay").gameObject;
         }
         else { replay = false; }
 
@@ -85,10 +93,11 @@ public class ReadingTaskScript : MonoBehaviour
         finishedButton.SetActive(false);
         if (replay)
         {
+            currentframefordata = 0;
             settingscanvas.SetActive(false);
 
             //Set all settings to that of replay
-            gameprams = replayobject.GetComponent<GameInfo>().GameName.Split('_');
+            gameprams = replayobject.GetComponent<GameInfoMono>().GameName.Split('_');
             //Set replay language
             if(gameprams[2] == "English")
             {
@@ -121,10 +130,18 @@ public class ReadingTaskScript : MonoBehaviour
 
             _createGetTaskGazeDataCallback = (jsonArray) =>
             {
-                Util.Model.Recording rec = JsonConvert.DeserializeObject<Util.Model.Recording>(jsonArray);
-                currentrecdata = rec;
+                db.Database.BeginTransaction();
+                something.ThrowawayIntTye s = JsonConvert.DeserializeObject<something.ThrowawayIntTye>(jsonArray);
+                
+                currentrecdata = db.Recordings.Find(Int32.Parse(s.recording_id));
+                db.Dispose();
             };
-            GetGazeData(GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>().GetId(), GameObject.Find("DetailForReplay").GetComponent<GameInfoMono>().timestamp);
+
+            GetGazeData(GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>().GetId(), GameObject.Find("DetailsForReplay").GetComponent<GameInfoMono>().timestamp);
+
+            
+               
+            
             startReplayButton.SetActive(true);
             ExitReplayButton.SetActive(true);
             PauseButton.SetActive(false);
@@ -170,18 +187,64 @@ public class ReadingTaskScript : MonoBehaviour
             if (!pause) {
                 if (replay)
                 {
-                    /*
-                    Eye left = new Eye();
-                    Eye right = new Eye();
-                    Eye average = new Eye();
-                    EyeData eyeData = new EyeData(true, currentrecdata.TimestampNS[currentframefordata],left, right, average, );
-                    leftgazepoint.transform.position = eyeData.left.position + eyeData.approxFocusDist * eyeData.left.gazeDirection;
-                    */
-                    //TODO make gaze visualizers move each frame equal to et data from db
-                    //
-                    //
-                    //
+                   
+                    if (currentframefordata+1 == currentrecdata.TimestampNS.Count)
+                    {
+                        gameFinished();
+                    }
+                    else
+                    {
+                        nanosecondssincelastupdate += Time.deltaTime*1000000000;
+                        if (currentrecdata.TimestampNS[currentframefordata + 1] - currentrecdata.TimestampNS[currentframefordata] <= nanosecondssincelastupdate)
+                        {
+                            
+                            try
+                            {
+                                Vector3 leftpositiontest = new Vector3(currentrecdata.LeftEyePosX[currentframefordata], currentrecdata.LeftEyePosY[currentframefordata], currentrecdata.LeftEyePosZ[currentframefordata]);
+                            }
+                            catch (ArgumentOutOfRangeException e)
+                            {
+                                Debug.Log(e);
+                                gameFinished();
+
+                            }
+                            Vector3 leftposition = new Vector3(currentrecdata.LeftEyePosX[currentframefordata], currentrecdata.LeftEyePosY[currentframefordata], currentrecdata.LeftEyePosZ[currentframefordata]);
+                            Vector3 rightposition = new Vector3(currentrecdata.RightEyePosX[currentframefordata], currentrecdata.RightEyePosY[currentframefordata], currentrecdata.RightEyePosZ[currentframefordata]);
+                            Vector3 leftgazedir = new Vector3(currentrecdata.LeftGazeDirX[currentframefordata], currentrecdata.LeftGazeDirY[currentframefordata], currentrecdata.LeftGazeDirZ[currentframefordata]);
+                            Vector3 rightgazedir = new Vector3(currentrecdata.RightGazeDirX[currentframefordata], currentrecdata.RightGazeDirY[currentframefordata], currentrecdata.RightGazeDirZ[currentframefordata]);
+                            Vector3 leftgazedirrel = new Vector3(currentrecdata.LeftGazeDirRelX[currentframefordata], currentrecdata.LeftGazeDirRelY[currentframefordata], currentrecdata.LeftGazeDirRelZ[currentframefordata]);
+                            Vector3 rightgazedirrel = new Vector3(currentrecdata.RightGazeDirRelX[currentframefordata], currentrecdata.RightGazeDirRelY[currentframefordata], currentrecdata.RightGazeDirRelZ[currentframefordata]);
+
+                            Eye left = new Eye();
+                            left.position = leftposition;
+                            left.gazeDirection = leftgazedir;
+                            left.gazeDirectionRel = leftgazedirrel;
+                            Eye right = new Eye();
+                            right.position = rightposition;
+                            right.gazeDirection = rightgazedir;
+                            right.gazeDirectionRel = rightgazedirrel;
+                            Eye average = new Eye();
+                            average.position = (rightposition + leftposition) / 2;
+                            average.gazeDirection = (rightgazedir + leftgazedir) / 2;
+                            average.gazeDirectionRel = (rightgazedirrel + leftgazedirrel) / 2;
+                            EyeData eyeData = new EyeData();
+                            eyeData.left = left;
+                            eyeData.right = right;
+                            eyeData.average = average;
+
+                            leftgazepoint.transform.position = eyeData.left.position + (currentrecdata.approxFocusDist[currentframefordata] + 2f) * eyeData.left.gazeDirection;
+                            rightgazepoint.transform.position = eyeData.right.position + (currentrecdata.approxFocusDist[currentframefordata] + 2f) * eyeData.right.gazeDirection;
+                            //GazeVisualizer.spawn
+                            currentframefordata++;
+                            nanosecondssincelastupdate = 0;
+
+                        }
+                    }
+
+                        
                 }
+                    
+            }
 
 
                 if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
@@ -191,9 +254,9 @@ public class ReadingTaskScript : MonoBehaviour
 
             }
             //record stuff
-        }
+        
     }
-    public void GetGazeData(int userid, DateTime timestamp)
+    public void GetGazeData(int userid, string timestamp)
     {
         StartCoroutine(webrequest.getGazeDataForRecording("http://localhost/getGazeDataForTask.php", userid, timestamp, _createGetTaskGazeDataCallback));
     }
@@ -247,6 +310,7 @@ public class ReadingTaskScript : MonoBehaviour
             startReplayButton.SetActive(true);
             ExitReplayButton.SetActive(true);
             PauseButton.SetActive(false);
+            currentframefordata = 0;
         }
         else
         {
@@ -277,40 +341,43 @@ public class ReadingTaskScript : MonoBehaviour
         }
         if (language == "English" && length == 0)
         {
-            text.GetComponent<Text>().text = "English Short";
+            text.GetComponent<Text>().text = "Wearable technology, or “wearables”, is the name for the type of electronic devices we can wear as accessories, implanted in our clothing or even in our body. Wearables are hands-free gadgets with microprocessors and a connection to the internet.";
 
             if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
-                    Name = "ReadingTask_Short_English",
+                    Name = "Reading Task_Short_English",
                     Version = 1,
-                }, et, subject_id);
+                }, et, subject_id, DateTime.Now.ToString());
             }
         }
         else if (language == "English" && length == 1)
         {
-            text.GetComponent<Text>().text = "English Medium";
+            text.GetComponent<Text>().text = "Wearable technology, or “wearables”, is the name for the type of electronic devices we can wear as accessories, implanted in our clothing or even in our body.Wearables are hands - free gadgets with microprocessors and a connection to the internet." +
+                "The first popular electronic wearable technology was Fitness trackers, like ‘Fitbits’, which became popular in the 2010s. They monitor your heart and movement and help you keep fit. Now, wearable technology helps people stay healthy in new ways. For example, the ‘iTBra’ is a patch. Women wear it inside their bras, and it checks for breast cancer.";
 
             if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
-                    Name = "ReadingTask_Medium_English",
+                    Name = "Reading Task_Medium_English",
                     Version = 1,
-                }, et, subject_id);
+                }, et, subject_id, DateTime.Now.ToString());
             }
         }
         else if (language == "English" && length == 2)
         {
-            text.GetComponent<Text>().text = "English Long";
+            text.GetComponent<Text>().text = "Wearable technology, or “wearables”, is the name for the type of electronic devices we can wear as accessories, implanted in our clothing or even in our body. Wearables are hands-free gadgets with microprocessors and a connection to the internet." +
+                "The first popular electronic wearable technology was Fitness trackers, like ‘Fitbits’, which became popular in the 2010s. They monitor your heart and movement and help you keep fit. Now, wearable technology helps people stay healthy in new ways. For example, the ‘iTBra’ is a patch. Women wear it inside their bras, and it checks for breast cancer." +
+                " ‘Heartguide’ looks like a smartwatch, but it can measure blood pressure. It can also track information about a person’s lifestyle, for example, how much they exercise. Then it shares this information with a doctor so that the doctor can give better advice. ‘SmartSleep’ is a soft headband. It helps people to sleep better. It collects information about people’s sleep patterns, gives advice and makes sounds to help people fall asleep. ";
             if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
-                    Name = "ReadingTask_Long_English",
+                    Name = "Reading Task_Long_English",
                     Version = 1,
-                }, et, subject_id);
+                }, et, subject_id, DateTime.Now.ToString());
             }
         }
         else if (language == "Norwegian" && length == 0)
@@ -323,9 +390,9 @@ public class ReadingTaskScript : MonoBehaviour
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
-                    Name = "ReadingTask_Short_Norwegian",
+                    Name = "Reading Task_Short_Norwegian",
                     Version = 1,
-                }, et, subject_id);
+                }, et, subject_id, DateTime.Now.ToString());
             }
         }
         else if (language == "Norwegian" && length == 1)
@@ -342,9 +409,9 @@ public class ReadingTaskScript : MonoBehaviour
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
-                    Name = "ReadingTask_Medium_Norwegian",
+                    Name = "Reading Task_Medium_Norwegian",
                     Version = 1,
-                }, et,subject_id);
+                }, et,subject_id, DateTime.Now.ToString());
             }
             
         }
@@ -366,9 +433,9 @@ public class ReadingTaskScript : MonoBehaviour
             {
                 recorder = new GameRecorder(new Util.Model.Game
                 {
-                    Name = "ReadingTask_Long_Norwegian",
+                    Name = "Reading Task_Long_Norwegian",
                     Version = 1,
-                }, et,subject_id);
+                }, et,subject_id, DateTime.Now.ToString());
             }
             
         }
@@ -393,19 +460,22 @@ public class ReadingTaskScript : MonoBehaviour
         {
             PauseButton.GetComponent<Image>().color = shortbutton.GetComponent<Button>().colors.normalColor;
             pause = false;
-            PauseButton.GetComponent<Text>().text = "Pause";
+            PauseButton.transform.GetChild(0).GetComponent<Text>().text = "Pause";
         }
         else
         {
             PauseButton.GetComponent<Image>().color = shortbutton.GetComponent<Button>().colors.selectedColor;
             pause = true;
-            PauseButton.GetComponent<Text>().text = "Resume";
+            PauseButton.transform.GetChild(0).GetComponent<Text>().text = "Resume";
         }
         
     }
 
     void OnDestroy()
     {
-        recorder.Commit();
+        if (recorder != null)
+        {
+            recorder.Commit();
+        }
     }
 }

@@ -6,10 +6,10 @@ using UnityEngine;
 public class GameInfoMono : MonoBehaviour
 {
     public string GameName { get; set; }
-    public int Version { get; set; }
-    public DateTime timestamp { get; set; }
+    public string Version { get; set; }
+    public string timestamp { get; set; }
 
-    public GameInfoMono(string name, int version, DateTime timestamp)
+    public GameInfoMono(string name, string version, string timestamp)
     {
         this.GameName = name;
         this.Version = version;

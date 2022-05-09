@@ -7,9 +7,10 @@ using UnityEngine;
 public class GameInfo
 {
     // Start is called before the first frame update
-    public string GameName { get; set; }
-    public int Version { get; set; }
+    public string game_name { get; set; }
 
-    public DateTime timestamp { get; set; }
+    public string game_version { get; set; }
+
+    public string recordingtime { get; set; }
     
 }

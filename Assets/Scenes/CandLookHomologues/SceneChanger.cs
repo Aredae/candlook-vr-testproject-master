@@ -67,7 +67,7 @@ public class SceneChanger : MonoBehaviour
 
     public void recalibrateEyetracking()
     {
-        if (!UnityEngine.XR.XRSettings.isDeviceActive)
+        if (UnityEngine.XR.XRSettings.isDeviceActive)
         {
             et.calibrate();
         }

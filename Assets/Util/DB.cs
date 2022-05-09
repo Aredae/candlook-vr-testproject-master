@@ -50,6 +50,8 @@ namespace Util
             public int RecordingId { get; set; }
             public Game Game { get; set; }
             public int Subject_id { get; set; }
+
+            public string recordingtime { get; set; }
             // These lists will be translated by Npgsql to use PostgreSQL arrays, which can be efficiently
             // read by psycopg2 into numpy arrays for data analysis. This is considerably more efficient
             // than using a single row for every entry.
@@ -77,6 +79,7 @@ namespace Util
             public List<float> RightGazeDirRelX { get; set; } = new List<float>();
             public List<float> RightGazeDirRelY { get; set; } = new List<float>();
             public List<float> RightGazeDirRelZ { get; set; } = new List<float>();
+            public List<float> approxFocusDist { get; set; } = new List<float>();
 
             public void addEyeData(EyeData eyeData)
             {
@@ -99,6 +102,7 @@ namespace Util
                 this.RightGazeDirRelX.Add(eyeData.right.gazeDirectionRel.x);
                 this.RightGazeDirRelY.Add(eyeData.right.gazeDirectionRel.y);
                 this.RightGazeDirRelZ.Add(eyeData.right.gazeDirectionRel.z);
+                this.approxFocusDist.Add(eyeData.approxFocusDist);
             }
             public void addEyeData(IEnumerable<EyeData> data)
             {
@@ -121,6 +125,7 @@ namespace Util
                 this.RightGazeDirRelX.AddRange(data.Select(eyeData => eyeData.right.gazeDirectionRel.x));
                 this.RightGazeDirRelY.AddRange(data.Select(eyeData => eyeData.right.gazeDirectionRel.y));
                 this.RightGazeDirRelZ.AddRange(data.Select(eyeData => eyeData.right.gazeDirectionRel.z));
+                this.approxFocusDist.AddRange(data.Select(eyeData => eyeData.approxFocusDist));
             }
         }
 

@@ -16,6 +16,8 @@ public class SmoothPursuitScriot : MonoBehaviour
     public GameObject endball;
     public GameObject startballrl;
     public GameObject endballrl;
+    public GameObject leftgazepoint;
+    public GameObject rightgazepoint;
 
     public GameObject xrrig;
 
@@ -69,10 +71,13 @@ public class SmoothPursuitScriot : MonoBehaviour
     private bool usersignedinn;
     private bool waitrunning;
     private float timer;
+    private DB db;
 
     public GameObject countdowntimer;
     private Action<string> _createGetTaskGazeDataCallback;
     private Recording currentrecdata;
+    private int currentframefordata;
+    private float nanosecondssincelastupdate;
 
 
     //private Varjo.XR.VarjoEventManager em;
@@ -80,11 +85,14 @@ public class SmoothPursuitScriot : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        currentframefordata = 0;
+        nanosecondssincelastupdate = 0;
         pause = false;
-        if(GameObject.Find("DetailForReplay")!= null)
+        if (GameObject.Find("DetailsForReplay") != null)
         {
+            db = new DB();
             replay = true;
-            replayobject = GameObject.Find("DetailForReplay");
+            replayobject = GameObject.Find("DetailsForReplay").gameObject;
         }
         else { replay = false; }
 
@@ -128,7 +136,7 @@ public class SmoothPursuitScriot : MonoBehaviour
             SettingsCanvas.SetActive(false);
 
             //Set all settings to that of replay
-            gameprams= replayobject.GetComponent<GameInfo>().GameName.Split('_');
+            gameprams= replayobject.GetComponent<GameInfoMono>().GameName.Split('_');
             if(gameprams[2] == "Left Right")
             {
                 direction = 0;
@@ -171,10 +179,14 @@ public class SmoothPursuitScriot : MonoBehaviour
 
             _createGetTaskGazeDataCallback = (jsonArray) =>
             {
-                Util.Model.Recording rec = JsonConvert.DeserializeObject<Util.Model.Recording>(jsonArray);
-                currentrecdata = rec;
+                db.Database.BeginTransaction();
+                something.ThrowawayIntTye s = JsonConvert.DeserializeObject<something.ThrowawayIntTye>(jsonArray);
+
+                currentrecdata = db.Recordings.Find(Int32.Parse(s.recording_id));
+                db.Dispose();
             };
-            GetGazeData(GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>().GetId(), GameObject.Find("DetailForReplay").GetComponent<GameInfoMono>().timestamp);
+
+            GetGazeData(GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>().GetId(), GameObject.Find("DetailsForReplay").GetComponent<GameInfoMono>().timestamp);
 
             startReplayButton.SetActive(true);
             ExitReplayButton.SetActive(true);
@@ -212,7 +224,7 @@ public class SmoothPursuitScriot : MonoBehaviour
 
     }
 
-    public void GetGazeData(int userid, DateTime timestamp)
+    public void GetGazeData(int userid, string timestamp)
     {
         StartCoroutine(webrequest.getGazeDataForRecording("http://localhost/getGazeDataForTask.php", userid, timestamp, _createGetTaskGazeDataCallback));
     }
@@ -289,10 +301,57 @@ public class SmoothPursuitScriot : MonoBehaviour
             {
                 if (replay)
                 {
-                    //TODO make gaze visualizers move each frame equal to et data from db
-                    //
-                    //
-                    //
+                    if (currentframefordata + 1 == currentrecdata.TimestampNS.Count)
+                    {
+
+                    }
+                    else
+                    {
+                        nanosecondssincelastupdate += Time.deltaTime * 1000000000;
+                        if (currentrecdata.TimestampNS[currentframefordata + 1] - currentrecdata.TimestampNS[currentframefordata] <= nanosecondssincelastupdate)
+                        {
+
+                            try
+                            {
+                                Vector3 leftpositiontest = new Vector3(currentrecdata.LeftEyePosX[currentframefordata], currentrecdata.LeftEyePosY[currentframefordata], currentrecdata.LeftEyePosZ[currentframefordata]);
+                            }
+                            catch (ArgumentOutOfRangeException e)
+                            {
+                                Debug.Log(e);
+
+                            }
+                            Vector3 leftposition = new Vector3(currentrecdata.LeftEyePosX[currentframefordata], currentrecdata.LeftEyePosY[currentframefordata], currentrecdata.LeftEyePosZ[currentframefordata]);
+                            Vector3 rightposition = new Vector3(currentrecdata.RightEyePosX[currentframefordata], currentrecdata.RightEyePosY[currentframefordata], currentrecdata.RightEyePosZ[currentframefordata]);
+                            Vector3 leftgazedir = new Vector3(currentrecdata.LeftGazeDirX[currentframefordata], currentrecdata.LeftGazeDirY[currentframefordata], currentrecdata.LeftGazeDirZ[currentframefordata]);
+                            Vector3 rightgazedir = new Vector3(currentrecdata.RightGazeDirX[currentframefordata], currentrecdata.RightGazeDirY[currentframefordata], currentrecdata.RightGazeDirZ[currentframefordata]);
+                            Vector3 leftgazedirrel = new Vector3(currentrecdata.LeftGazeDirRelX[currentframefordata], currentrecdata.LeftGazeDirRelY[currentframefordata], currentrecdata.LeftGazeDirRelZ[currentframefordata]);
+                            Vector3 rightgazedirrel = new Vector3(currentrecdata.RightGazeDirRelX[currentframefordata], currentrecdata.RightGazeDirRelY[currentframefordata], currentrecdata.RightGazeDirRelZ[currentframefordata]);
+
+                            Eye left = new Eye();
+                            left.position = leftposition;
+                            left.gazeDirection = leftgazedir;
+                            left.gazeDirectionRel = leftgazedirrel;
+                            Eye right = new Eye();
+                            right.position = rightposition;
+                            right.gazeDirection = rightgazedir;
+                            right.gazeDirectionRel = rightgazedirrel;
+                            Eye average = new Eye();
+                            average.position = (rightposition + leftposition) / 2;
+                            average.gazeDirection = (rightgazedir + leftgazedir) / 2;
+                            average.gazeDirectionRel = (rightgazedirrel + leftgazedirrel) / 2;
+                            EyeData eyeData = new EyeData();
+                            eyeData.left = left;
+                            eyeData.right = right;
+                            eyeData.average = average;
+
+                            leftgazepoint.transform.position = eyeData.left.position + currentrecdata.approxFocusDist[currentframefordata] * eyeData.left.gazeDirection;
+                            rightgazepoint.transform.position = eyeData.right.position + currentrecdata.approxFocusDist[currentframefordata] * eyeData.right.gazeDirection;
+                            //GazeVisualizer.spawn
+                            currentframefordata++;
+                            nanosecondssincelastupdate = 0;
+
+                        }
+                    }
                 }
                 if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                 {
@@ -342,6 +401,8 @@ public class SmoothPursuitScriot : MonoBehaviour
                         }
                         else
                         {
+                            currentframefordata = 0;
+                            nanosecondssincelastupdate = 0;
                             startReplayButton.SetActive(true);
                             ExitReplayButton.SetActive(true);
                             PauseButton.SetActive(false);
@@ -429,7 +490,7 @@ public class SmoothPursuitScriot : MonoBehaviour
                     {
                         Name = "Smooth Pursuit_Horizontal_Left Right_" + speed + " Seconds_" + repetitions + "_Repetitions",
                         Version = 1,
-                    }, et, subject_id);
+                    }, et, subject_id, DateTime.Now.ToString());
                 }
             }
             else
@@ -445,7 +506,7 @@ public class SmoothPursuitScriot : MonoBehaviour
                     {
                         Name = "Smooth Pursuit_Diagonal_Left Right_" + speed + " Seconds_" + repetitions + "_Repetitions",
                         Version = 1,
-                    }, et, subject_id);
+                    }, et, subject_id, DateTime.Now.ToString());
                 }
             }
         }
@@ -466,7 +527,7 @@ public class SmoothPursuitScriot : MonoBehaviour
                     {
                         Name = "Smooth Pursuit_Horizontal_Right Left_" + speed + " Seconds_" + repetitions + "_Repetitions",
                         Version = 1,
-                    }, et, subject_id);
+                    }, et, subject_id, DateTime.Now.ToString());
                 }
             }
             else
@@ -481,7 +542,7 @@ public class SmoothPursuitScriot : MonoBehaviour
                     {
                         Name = "Smooth Pursuit_Diagonal_Right Left_" + speed + " Seconds_" + repetitions + "_Repetitions",
                         Version = 1,
-                    }, et, subject_id);
+                    }, et, subject_id, DateTime.Now.ToString());
                 }
             }
         }
@@ -531,19 +592,22 @@ public class SmoothPursuitScriot : MonoBehaviour
         {
             PauseButton.GetComponent<Image>().color = startReplayButton.GetComponent<Button>().colors.normalColor;
             pause = false;
-            PauseButton.GetComponent<Text>().text = "Pause";
+            PauseButton.transform.GetChild(0).GetComponent<Text>().text = "Pause";
         }
         else
         {
             PauseButton.GetComponent<Image>().color = startReplayButton.GetComponent<Button>().colors.selectedColor;
             pause = true;
-            PauseButton.GetComponent<Text>().text = "Resume";
+            PauseButton.transform.GetChild(0).GetComponent<Text>().text = "Resume";
         }
 
     }
 
     void OnDestroy()
     {
-        recorder.Commit();
+        if (recorder != null)
+        {
+            recorder.Commit();
+        }
     }
 }

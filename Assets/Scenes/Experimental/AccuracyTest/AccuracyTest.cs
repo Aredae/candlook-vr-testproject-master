@@ -125,7 +125,7 @@ public class AccuracyTest : MonoBehaviour
         {
             Name = "accuracy_test",
             Version = 1,
-        }, et, subject_id);
+        }, et, subject_id, DateTime.Now.ToString());
 
         foreach (GameObject obj in calibrationPoints)
             obj.SetActive(false);

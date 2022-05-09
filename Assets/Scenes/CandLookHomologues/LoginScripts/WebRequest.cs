@@ -154,11 +154,11 @@ public class WebRequest
         }
     }
 
-    public IEnumerator getGazeDataForRecording(string uri, int userid, DateTime timestamp, System.Action<string> callback)
+    public IEnumerator getGazeDataForRecording(string uri, int userid, string timestamp, System.Action<string> callback)
     {
         WWWForm myform = new WWWForm();
         myform.AddField("subject_id", userid);
-        myform.AddField("recordingtime", timestamp.ToString());
+        myform.AddField("recordingtime", timestamp);
         using (UnityWebRequest webRequest = UnityWebRequest.Post(uri, myform))
         {
             // Request and wait for the desired page.
