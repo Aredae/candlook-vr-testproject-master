@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: 82d39e5fcf9c44a4f96f6a50b51a15f9, type: 2}
   m_LightingSettings: {fileID: 1824530150}
 --- !u!196 &4
 NavMeshSettings:
@@ -350,7 +350,6 @@ MonoBehaviour:
   leftgazepoint: {fileID: 23725186}
   rightgazepoint: {fileID: 66860981}
   xrrig: {fileID: 219874237}
-  canvas: {fileID: 0}
   typedropdown: {fileID: 1798781262}
   SettingsCanvas: {fileID: 1521641784}
   timerslider: {fileID: 1792429037}

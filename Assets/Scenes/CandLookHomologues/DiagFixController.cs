@@ -21,7 +21,7 @@ public class DiagFixController : MonoBehaviour
 
     public GameObject xrrig;
 
-    public GameObject canvas;
+    //public GameObject canvas;
 
     public GameObject typedropdown;
 
@@ -455,7 +455,7 @@ public class DiagFixController : MonoBehaviour
                     }
                     else if (N_repetitions == 0 && timer > WaitingTime)
                     {
-                        canvas.SetActive(true);
+                        //canvas.SetActive(true);
                         if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                         {
                             OnDestroy();
@@ -520,7 +520,7 @@ public class DiagFixController : MonoBehaviour
                         }
                         else
                         {
-                            canvas.SetActive(true);
+                            //canvas.SetActive(true);
                             lasthorrizontalpos = lrinit_pos;
                             if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                             {
