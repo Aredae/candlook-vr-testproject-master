@@ -188,4 +188,71 @@ public class WebRequest
         }
     }
 
+    public IEnumerator InsertNewSubjectAndReturnId(string uri, string subjectname, int groupid, System.Action<string> callback)
+    {
+        WWWForm myform = new WWWForm();
+        myform.AddField("name", subjectname);
+        myform.AddField("group_id", groupid);
+        using (UnityWebRequest webRequest = UnityWebRequest.Post(uri, myform))
+        {
+            // Request and wait for the desired page.
+            webRequest.useHttpContinue = false;
+            yield return webRequest.SendWebRequest();
+
+            string[] pages = uri.Split('/');
+            int page = pages.Length - 1;
+
+            switch (webRequest.result)
+            {
+                case UnityWebRequest.Result.ConnectionError:
+                case UnityWebRequest.Result.DataProcessingError:
+                    Debug.LogError(pages[page] + ": Error: " + webRequest.error);
+                    break;
+                case UnityWebRequest.Result.ProtocolError:
+                    Debug.LogError(pages[page] + ": HTTP Error: " + webRequest.error);
+                    break;
+                case UnityWebRequest.Result.Success:
+                    Debug.Log(pages[page] + ":\nReceived: " + webRequest.downloadHandler.text);
+                    string jsonArray = webRequest.downloadHandler.text;
+                    Debug.Log(jsonArray);
+                    callback(jsonArray);
+                    //call callback function to pass results
+                    break;
+            }
+        }
+    }
+
+    public IEnumerator InsertNewGroupAndReturnId(string uri, string Groupname, System.Action<string> callback)
+    {
+        WWWForm myform = new WWWForm();
+        myform.AddField("name", Groupname);
+        using (UnityWebRequest webRequest = UnityWebRequest.Post(uri, myform))
+        {
+            // Request and wait for the desired page.
+            webRequest.useHttpContinue = false;
+            yield return webRequest.SendWebRequest();
+
+            string[] pages = uri.Split('/');
+            int page = pages.Length - 1;
+
+            switch (webRequest.result)
+            {
+                case UnityWebRequest.Result.ConnectionError:
+                case UnityWebRequest.Result.DataProcessingError:
+                    Debug.LogError(pages[page] + ": Error: " + webRequest.error);
+                    break;
+                case UnityWebRequest.Result.ProtocolError:
+                    Debug.LogError(pages[page] + ": HTTP Error: " + webRequest.error);
+                    break;
+                case UnityWebRequest.Result.Success:
+                    Debug.Log(pages[page] + ":\nReceived: " + webRequest.downloadHandler.text);
+                    string jsonArray = webRequest.downloadHandler.text;
+                    Debug.Log(jsonArray);
+                    callback(jsonArray);
+                    //call callback function to pass results
+                    break;
+            }
+        }
+    }
+
 }

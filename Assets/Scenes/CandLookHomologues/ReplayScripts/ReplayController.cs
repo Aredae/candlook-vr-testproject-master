@@ -10,6 +10,8 @@ using UnityEngine.SceneManagement;
 
 public class ReplayController : MonoBehaviour
 {
+    public GameObject controllers;
+    public GameObject xrrig;
     WebRequest webrequest = new WebRequest();
     public GameObject usertext;
 
@@ -313,7 +315,7 @@ public class ReplayController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        controllers.transform.position = xrrig.transform.position;
     }
 
     public List<GameInfo> GameInfoFromJson(string json)

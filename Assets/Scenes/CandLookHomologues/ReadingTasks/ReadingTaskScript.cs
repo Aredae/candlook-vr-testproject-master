@@ -61,6 +61,7 @@ public class ReadingTaskScript : MonoBehaviour
     private System.Action<string> _createGetTaskGazeDataCallback;
     private Util.Model.Recording currentrecdata;
     private float nanosecondssincelastupdate;
+    public GameObject controllers;
 
 
     // Start is called before the first frame update
@@ -176,6 +177,7 @@ public class ReadingTaskScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        controllers.transform.position = xrrig.transform.position;
         if (waitrunning)
         {
             timer += Time.deltaTime;

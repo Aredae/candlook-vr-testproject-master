@@ -17,9 +17,13 @@ public class DatabaseUtil : MonoBehaviour
     List<Subject> SubjectsInDropdown;
     WebRequest webrequest = new WebRequest();
     public GameObject dropdownGroups;
+    public GameObject dropdownGroupsCreateSubjectPage;
     public GameObject dropdownSubjects;
     System.Action<string> _createGroupsCallback;
     System.Action<string> _createSubjectsCallback;
+    System.Action<string> _createNewGroupCallback;
+    System.Action<string> _createNewSubjectCallback;
+
     private void Start()
     {
         _createGroupsCallback = (jsonArray) => {
@@ -34,6 +38,8 @@ public class DatabaseUtil : MonoBehaviour
             dropdownGroups.transform.GetComponent<Dropdown>().options.Clear();
             GroupsInDropdown = groups;
             dropdownGroups.transform.GetComponent<Dropdown>().AddOptions(namelist);
+            dropdownGroupsCreateSubjectPage.transform.GetComponent<Dropdown>().options.Clear();
+            dropdownGroupsCreateSubjectPage.transform.GetComponent<Dropdown>().AddOptions(namelist);
             CreateSubjects(currentGroup.id);
         };
         _createSubjectsCallback = (jsonArray) => {
@@ -48,6 +54,30 @@ public class DatabaseUtil : MonoBehaviour
             SubjectsInDropdown = subjects;
             dropdownSubjects.transform.GetComponent<Dropdown>().AddOptions(namelist);
         };
+
+        _createNewGroupCallback = (jsonArray) =>
+        {
+            List<Group> g = JsonConvert.DeserializeObject<List<Group>>(jsonArray);
+            Debug.Log(g);
+            foreach(Group gh in g)
+            {
+                GroupsInDropdown.Add(gh);
+                Dropdown.OptionData od = new Dropdown.OptionData();
+                od.text = gh.name;
+                dropdownGroups.transform.GetComponent<Dropdown>().options.Add(od);
+                dropdownGroupsCreateSubjectPage.transform.GetComponent<Dropdown>().options.Add(od);
+            }
+        };
+
+        _createNewSubjectCallback = (jsonArray) =>
+        {
+            List<Subject> s = JsonConvert.DeserializeObject<List<Subject>>(jsonArray);
+            Debug.Log(s);
+            foreach (Subject sh in s)
+            {
+                Current = sh;
+            }
+        };
         CreateGroups();
 
         dropdownGroups.transform.GetComponent<Dropdown>().onValueChanged.AddListener(delegate {
@@ -55,6 +85,10 @@ public class DatabaseUtil : MonoBehaviour
         });
         dropdownSubjects.transform.GetComponent<Dropdown>().onValueChanged.AddListener(delegate {
             DropdownSubjectsChanged();
+        });
+
+        dropdownGroupsCreateSubjectPage.transform.GetComponent<Dropdown>().onValueChanged.AddListener(delegate {
+            DropdownGroupsChanged();
         });
     }
 
@@ -98,6 +132,15 @@ public class DatabaseUtil : MonoBehaviour
         StartCoroutine(webrequest.GetSubjectsFromGroup("http://localhost/getsubjectsbygroup.php", groupid, _createSubjectsCallback));
     }
 
+    public void CreateNewGroup(string groupname)
+    {
+        StartCoroutine(webrequest.InsertNewGroupAndReturnId("http://localhost/SaveNewGroup.php", groupname, _createNewGroupCallback));
+    }
+
+    public void CreateNewSubject(string name, int groupid)
+    {
+        StartCoroutine(webrequest.InsertNewSubjectAndReturnId("http://localhost/SaveNewSubject.php", name, groupid, _createNewSubjectCallback));
+    }
 
     public List<Group> GroupsFromJson(string json)
     {

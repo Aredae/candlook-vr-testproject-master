@@ -85,6 +85,7 @@ public class DiagFixController : MonoBehaviour
     private DB db;
     private int currentframefordata;
     private float nanosecondssincelastupdate;
+    public GameObject controllers;
 
     //private Varjo.XR.VarjoEventManager em;
 
@@ -332,6 +333,8 @@ public class DiagFixController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        controllers.transform.position = xrrig.transform.position;
+
         if (Input.GetKeyDown(KeyCode.Space) && UnityEngine.XR.XRSettings.isDeviceActive && !replay)
             et.calibrate();
 

@@ -78,6 +78,7 @@ public class SmoothPursuitScriot : MonoBehaviour
     private Recording currentrecdata;
     private int currentframefordata;
     private float nanosecondssincelastupdate;
+    public GameObject controllers;
 
 
     //private Varjo.XR.VarjoEventManager em;
@@ -279,6 +280,7 @@ public class SmoothPursuitScriot : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        controllers.transform.position = xrrig.transform.position;
         if (Input.GetKeyDown(KeyCode.Space) && UnityEngine.XR.XRSettings.isDeviceActive)
             et.calibrate();
 

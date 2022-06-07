@@ -21,6 +21,7 @@ public class MenuController : MonoBehaviour
     public GameObject button7;
     private List<GameObject> buttons;
     private int currselection;
+    public GameObject controllers;
 
 
     // Start is called before the first frame update
@@ -50,6 +51,7 @@ public class MenuController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        controllers.transform.position = xrrig.transform.position;
         if (Input.GetKeyDown(KeyCode.Space))
            et.calibrate();
 
