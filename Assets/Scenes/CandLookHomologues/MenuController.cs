@@ -44,7 +44,7 @@ public class MenuController : MonoBehaviour
             et = new VarjoET(Camera.main);
         }
         currselection = 0;
-        button1.GetComponent<Button>().GetComponent<Image>().color = Color.gray;
+        //button1.GetComponent<Button>().GetComponent<Image>().color = Color.gray;
     }
 
     // Update is called once per frame
