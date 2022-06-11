@@ -27,6 +27,11 @@ public class MenuController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        if (GameObject.Find("SubjectInfo") != null)
+        {
+            Debug.Log(GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>().GetId().ToString());
+            Debug.Log(GameObject.Find("SubjectInfo").GetComponent<Subjectinfo>().GetName());
+        }
         buttons = new List<GameObject>();
         buttons.Add(button1);
         buttons.Add(button2);
@@ -37,7 +42,7 @@ public class MenuController : MonoBehaviour
         buttons.Add(button7);
         if (!UnityEngine.XR.XRSettings.isDeviceActive)
         {
-            SimpleSmoothMouseLook mouseController = xrrig.AddComponent<SimpleSmoothMouseLook>();
+            //SimpleSmoothMouseLook mouseController = xrrig.AddComponent<SimpleSmoothMouseLook>();
         }
         else
         {
@@ -52,6 +57,7 @@ public class MenuController : MonoBehaviour
     void Update()
     {
         controllers.transform.position = xrrig.transform.position;
+        /*
         if (Input.GetKeyDown(KeyCode.Space))
            et.calibrate();
 
@@ -104,6 +110,7 @@ public class MenuController : MonoBehaviour
                 buttons[currselection].GetComponent<Button>().onClick.Invoke();
             }
         }
+        */
     }
         
 }

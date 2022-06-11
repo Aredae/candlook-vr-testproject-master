@@ -16,6 +16,10 @@ public class OverlayKeyboardSample : MonoBehaviour
 
     public void OnSelect(BaseEventData eventData)
     {
+
+
+        Debug.Log("keyboard pressed");
+       
         ShowKeyboard(this);
     }
 
@@ -68,9 +72,12 @@ public class OverlayKeyboardSample : MonoBehaviour
 
         if (activeKeyboard == null)
         {
+            Debug.Log("activate keyboard");
             var vr = SteamVR.instance;
+            Debug.Log("vr variablke: "+vr);
             if (vr != null)
             {
+                Debug.Log("inside vr stream");
                 caller.text = caller.textEntry.text;
 #if VIU_STEAMVR_2_6_0_OR_NEWER
                 uint flag = 0;

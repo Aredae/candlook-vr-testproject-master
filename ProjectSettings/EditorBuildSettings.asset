@@ -33,5 +33,8 @@ EditorBuildSettings:
     path: Assets/Scenes/CandLookHomologues/ReadingTasks/ReadingScene.unity
     guid: 20a50330660c7fd4ca4b15b3c3a7b480
   m_configObjects:
+    Unity.XR.OpenVR.Settings: {fileID: 11400000, guid: 844654696db29f54b9a3100ab0bac156, type: 2}
+    Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: 5f88fba575fed6c4484370d537b9a303, type: 2}
     Varjo.XR.Settings: {fileID: 11400000, guid: 453fee88f7343f44ab4449b576786022, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: e5705f72a9e13774b85f91cdec9eee8a, type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 4c43914fc34cde14aa181fc9a8b7b0b3, type: 2}

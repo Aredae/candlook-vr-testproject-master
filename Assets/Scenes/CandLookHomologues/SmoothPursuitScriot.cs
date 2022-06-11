@@ -567,6 +567,7 @@ public class SmoothPursuitScriot : MonoBehaviour
     }
     public void startGame()
     {
+        Debug.Log("in the start thing");
         StartCoroutine(waitAndApplySettings());
         if (replay)
         {

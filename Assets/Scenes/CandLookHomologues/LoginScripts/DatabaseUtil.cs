@@ -57,6 +57,9 @@ public class DatabaseUtil : MonoBehaviour
 
         _createNewGroupCallback = (jsonArray) =>
         {
+
+            CreateGroups();
+            /*
             List<Group> g = JsonConvert.DeserializeObject<List<Group>>(jsonArray);
             Debug.Log(g);
             foreach(Group gh in g)
@@ -67,17 +70,10 @@ public class DatabaseUtil : MonoBehaviour
                 dropdownGroups.transform.GetComponent<Dropdown>().options.Add(od);
                 dropdownGroupsCreateSubjectPage.transform.GetComponent<Dropdown>().options.Add(od);
             }
+            */
         };
 
-        _createNewSubjectCallback = (jsonArray) =>
-        {
-            List<Subject> s = JsonConvert.DeserializeObject<List<Subject>>(jsonArray);
-            Debug.Log(s);
-            foreach (Subject sh in s)
-            {
-                Current = sh;
-            }
-        };
+        
         CreateGroups();
 
         dropdownGroups.transform.GetComponent<Dropdown>().onValueChanged.AddListener(delegate {
@@ -88,7 +84,7 @@ public class DatabaseUtil : MonoBehaviour
         });
 
         dropdownGroupsCreateSubjectPage.transform.GetComponent<Dropdown>().onValueChanged.AddListener(delegate {
-            DropdownGroupsChanged();
+            DropdownGroupsCreateUserPageChanged();
         });
     }
 
@@ -103,6 +99,19 @@ public class DatabaseUtil : MonoBehaviour
         foreach(Group g in GroupsInDropdown)
         {
             if(dropdownGroups.transform.GetComponent<Dropdown>().captionText.text == g.name)
+            {
+                currentGroup = g;
+            }
+        }
+        CreateSubjects(currentGroup.id);
+    }
+
+    public void DropdownGroupsCreateUserPageChanged()
+    {
+        //THIS DOES NOT SUPPORT IDENTICAL NAMES FOR THE FUTURE, NEEDS TO BE FIXED
+        foreach (Group g in GroupsInDropdown)
+        {
+            if (dropdownGroupsCreateSubjectPage.transform.GetComponent<Dropdown>().captionText.text == g.name)
             {
                 currentGroup = g;
             }
@@ -137,9 +146,9 @@ public class DatabaseUtil : MonoBehaviour
         StartCoroutine(webrequest.InsertNewGroupAndReturnId("http://localhost/SaveNewGroup.php", groupname, _createNewGroupCallback));
     }
 
-    public void CreateNewSubject(string name, int groupid)
+    public void CreateNewSubject(string name, int groupid, System.Action<string> callback)
     {
-        StartCoroutine(webrequest.InsertNewSubjectAndReturnId("http://localhost/SaveNewSubject.php", name, groupid, _createNewSubjectCallback));
+        StartCoroutine(webrequest.InsertNewSubjectAndReturnId("http://localhost/SaveNewSubject.php", name, groupid, callback));
     }
 
     public List<Group> GroupsFromJson(string json)

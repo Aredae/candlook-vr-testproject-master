@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.XR.Management;
 using Util;
 using Varjo.XR;
 
@@ -62,13 +63,77 @@ public class SceneChanger : MonoBehaviour
     public void Login()
     {
         Destroy(user);
+        if (GameObject.Find("InitalLoaderState") != null)
+        {
+            GameObject.Find("InitalLoaderState").GetComponent<InitalLoaderState>().setReturning(true);
+        }
         SceneManager.LoadScene("LoginScene");
+        Application.Quit();
     }
 
+    /*
+    public IEnumerator InitRegularLoadersandDeinitVarjoLoader(List<XRLoader> loaders)
+    {
+        yield return XRGeneralSettings.Instance.Manager.InitializeLoader();
+
+        foreach (XRLoader l in loaders)
+        {
+            if (l.GetType().ToString() == "Varjo.XR.VarjoLoader")
+            {
+                StartCoroutine(InitRegularLoaders(l));
+            }
+        }
+
+    }
+
+    public IEnumerator InitRegularLoaders(XRLoader loader)
+    {
+        yield return loader.Deinitialize();
+        XRGeneralSettings.Instance.Manager.InitializeLoader();
+    }
+    */
     public void recalibrateEyetracking()
     {
+        /*
+        List<XRLoader> loaders = XRGeneralSettings.Instance.Manager.loaders;
+        for (int loaderIndex = loaders.Count - 1; loaderIndex >= 0; --loaderIndex)
+        {
+            XRLoader loader = loaders[loaderIndex];
+
+            Debug.Log("Loader type: " + loader.GetType());
+
+            if (loader.GetType().ToString() == "Varjo.XR.VarjoLoader")
+            {
+
+                loader.Initialize();
+                loader.Start();
+
+            }
+
+
+
+            //  Debug.Log("Loader: "+ loader);
+            //  loaders.RemoveAt(1);
+            //  Debug.Log("Removed loader ");
+
+        }
+
+            /*
+            foreach (XRLoader currloader in loaders)
+            {
+                if (currloader.GetType().ToString() == "Varjo.XR.VarjoLoader")
+                {
+                    currloader.Initialize();
+                    currloader.Start();
+                }
+            }
+            comment out here
+        */
+        Debug.Log("next code run");
+
         if (UnityEngine.XR.XRSettings.isDeviceActive)
         {
+            Debug.Log("et should start recalibration");
             et.calibrate();
         }
         else

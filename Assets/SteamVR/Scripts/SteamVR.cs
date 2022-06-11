@@ -23,13 +23,14 @@ namespace Valve.VR
         // Use this to check if SteamVR is currently active without attempting
         // to activate it in the process.
         public static bool active { get { return _instance != null; } }
-
+       
         // Set this to false to keep from auto-initializing when calling SteamVR.instance.
         private static bool _enabled = true;
         public static bool enabled
         {
             get
             {
+                
 #if UNITY_2020_1_OR_NEWER || OPENVR_XR_API
                 if (XRSettings.supportedDevices.Length == 0)
                     enabled = false;
@@ -45,6 +46,7 @@ namespace Valve.VR
 
                 if (_enabled)
                 {
+
                     Initialize();
                 }
                 else
@@ -59,6 +61,7 @@ namespace Valve.VR
         {
             get
             {
+                
 #if UNITY_EDITOR
                 if (!Application.isPlaying)
                     return null;
@@ -68,6 +71,7 @@ namespace Valve.VR
 
                 if (_instance == null)
                 {
+                    
                     _instance = CreateInstance();
 
                     // If init failed, then auto-disable so scripts don't continue trying to re-initialize things.
@@ -165,6 +169,7 @@ namespace Valve.VR
 
                 // Verify common interfaces are valid.
 
+                
                 OpenVR.GetGenericInterface(OpenVR.IVRCompositor_Version, ref error);
                 if (error != EVRInitError.None)
                 {
@@ -172,6 +177,7 @@ namespace Valve.VR
                     ReportError(error);
                     ReportGeneralErrors();
                     SteamVR_Events.Initialized.Send(false);
+                    Debug.Log(error);
                     return null;
                 }
 
@@ -181,6 +187,7 @@ namespace Valve.VR
                     initializedState = InitializedStates.InitializeFailure;
                     ReportError(error);
                     SteamVR_Events.Initialized.Send(false);
+                    
                     return null;
                 }
 
