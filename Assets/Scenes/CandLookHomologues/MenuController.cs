@@ -4,6 +4,9 @@ using UnityEngine;
 using Util;
 using Varjo.XR;
 using UnityEngine.UI;
+using PrettyConsole;
+using UnityEngine.XR.Management;
+using UnityEditor.XR.Management.Metadata;
 
 public class MenuController : MonoBehaviour
 {
@@ -25,6 +28,21 @@ public class MenuController : MonoBehaviour
 
 
     // Start is called before the first frame update
+    private void Awake()
+    {
+        //Debug.Log("Red ACTIVE LOADER ON ENTER LOGIN: " + XRGeneralSettings.Instance.Manager.activeLoader.GetType().ToString());
+        Console.Log("ACTIVE LOADER ON ENTER MAIN MENU: " + XRGeneralSettings.Instance.Manager.activeLoader.GetType().ToString());
+        List<XRLoader> loaders = XRGeneralSettings.Instance.Manager.loaders;
+        for (int loaderIndex = loaders.Count - 1; loaderIndex >= 0; --loaderIndex)
+        {
+            XRLoader loader = loaders[loaderIndex];
+
+            Console.Log("Loader type Main Menu: " + loader.GetType());
+
+
+        }
+
+    }
     void Start()
     {
         if (GameObject.Find("SubjectInfo") != null)
@@ -50,6 +68,9 @@ public class MenuController : MonoBehaviour
             et = new VarjoET(Camera.main);
         }
         currselection = 0;
+
+      
+
         //button1.GetComponent<Button>().GetComponent<Image>().color = Color.gray;
     }
 

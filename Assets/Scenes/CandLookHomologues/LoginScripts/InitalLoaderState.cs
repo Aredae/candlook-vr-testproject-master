@@ -7,6 +7,7 @@ public class InitalLoaderState : MonoBehaviour
 {
     // Start is called before the first frame update
     public static InitalLoaderState instance;
+    public static int countnum=0;
 
     XRGeneralSettings InitialLoaderSettings;
     bool returning;

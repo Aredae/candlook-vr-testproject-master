@@ -410,6 +410,8 @@ public class DiagFixController : MonoBehaviour
 
                             leftgazepoint.transform.position = eyeData.left.position + currentrecdata.approxFocusDist[currentframefordata] * eyeData.left.gazeDirection;
                             rightgazepoint.transform.position = eyeData.right.position + currentrecdata.approxFocusDist[currentframefordata] * eyeData.right.gazeDirection;
+                            leftgazepoint.transform.position = new Vector3(leftgazepoint.transform.position.x, leftgazepoint.transform.position.y, leftgazepoint.transform.position.z + 5);
+                            rightgazepoint.transform.position = new Vector3(rightgazepoint.transform.position.x, rightgazepoint.transform.position.y, rightgazepoint.transform.position.z + 5);
                             //GazeVisualizer.spawn
                             currentframefordata++;
                             nanosecondssincelastupdate = 0;

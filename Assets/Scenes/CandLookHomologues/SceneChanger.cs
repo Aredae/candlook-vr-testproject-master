@@ -1,3 +1,4 @@
+using PrettyConsole;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,6 +13,8 @@ public class SceneChanger : MonoBehaviour
     private EyeTracker et;
     private VarjoEventManager em;
     public GameObject user;
+
+
 
     void Start()
     {
@@ -68,7 +71,7 @@ public class SceneChanger : MonoBehaviour
             GameObject.Find("InitalLoaderState").GetComponent<InitalLoaderState>().setReturning(true);
         }
         SceneManager.LoadScene("LoginScene");
-        Application.Quit();
+       // Application.Quit();
     }
 
     /*
@@ -94,6 +97,8 @@ public class SceneChanger : MonoBehaviour
     */
     public void recalibrateEyetracking()
     {
+        XRGeneralSettings.Instance.Manager.StartSubsystems();
+
         /*
         List<XRLoader> loaders = XRGeneralSettings.Instance.Manager.loaders;
         for (int loaderIndex = loaders.Count - 1; loaderIndex >= 0; --loaderIndex)
@@ -133,18 +138,18 @@ public class SceneChanger : MonoBehaviour
 
         if (UnityEngine.XR.XRSettings.isDeviceActive)
         {
-            Debug.Log("et should start recalibration");
+            Console.Log("et should start recalibration");
             et.calibrate();
         }
         else
         {
-            Debug.Log("Can't detect headset, do you have the headset properly connected?");
+            Console.Log("Can't detect headset, do you have the headset properly connected?");
         }
     }
 
     public void exit()
     {
-        Application.Quit();
+     //   Application.Quit();
     }
 
 

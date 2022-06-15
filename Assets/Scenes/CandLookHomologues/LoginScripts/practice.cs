@@ -11,6 +11,8 @@ using Varjo.XR;
 using static Varjo.XR.VarjoEyeTracking;
 using Newtonsoft.Json;
 using UnityEngine.XR.Management;
+using PrettyConsole;
+using UnityEditor.XR.Management.Metadata;
 //using Npgsql;
 
 public class practice : MonoBehaviour
@@ -45,11 +47,63 @@ public class practice : MonoBehaviour
     private XRGeneralSettings initsettings;
     private bool returning;
 
+    
+
+    private void Awake()
+    {
+        //Debug.Log("Red ACTIVE LOADER ON ENTER LOGIN: " + XRGeneralSettings.Instance.Manager.activeLoader.GetType().ToString());
+        //Console.Log("ACTIVE LOADER ON ENTER LOGIN: " + XRGeneralSettings.Instance.Manager.activeLoader.GetType().ToString());
+        //List<XRLoader> loaders = XRGeneralSettings.Instance.Manager.loaders;
+
+        //List<XRLoader> loaders = XRGeneralSettings.Instance.Manager.loaders;
+        //List<XRLoader> loaders2 = (List<XRLoader>)XRGeneralSettings.Instance.Manager.activeLoaders;
+
+        XRGeneralSettings.Instance.Manager.InitializeLoader();
+        /*
+        if (GameObject.Find("InitalLoaderState") != null)
+        {
+            if (GameObject.Find("InitalLoaderState").GetComponent<InitalLoaderState>().getReturning())
+            {
+                initsettings = GameObject.Find("InitalLoaderState").GetComponent<InitalLoaderState>().getSettings();
+
+                //initsettings.Instance.Manager.InitializeLoader();
+            }
+            else
+            {
+                GameObject.Find("InitalLoaderState").GetComponent<InitalLoaderState>().setSettings();
+            }
+        }
+        
+        
+        for (int loaderIndex = loaders.Count - 1; loaderIndex >= 0; --loaderIndex)
+        {
+            XRLoader loader = loaders[loaderIndex];
+
+            Debug.Log("Loader type: " + loader.GetType());
+            if (loader.GetType().ToString() == "Unity.XR.OpenVR.OpenVRLoader")
+            {
+                loader.Initialize();
+                loader.Start();
+            }
+
+            if (loader.GetType().ToString() == "Varjo.XR.VarjoLoader")
+            {
+                loader.Deinitialize();
+                loader.Stop();
+            }
+            //  Debug.Log("Loader: "+ loader);
+            //  loaders.RemoveAt(1);
+            //  Debug.Log("Removed loader ");
+        }
+        */
+
+
+
+    }
     // Start is called before the first frame update
     void Start()
     {
-        Debug.Log("ACTIVE LOADER ON ENTER LOGIN: " + XRGeneralSettings.Instance.Manager.activeLoader.GetType().ToString());
-
+        
         //List<XRLoader> loaders = XRGeneralSettings.Instance.Manager.loaders;
 
         //XRGeneralSettings.Instance.Manager.InitializeLoader();
@@ -91,7 +145,7 @@ public class practice : MonoBehaviour
         }
         */
         //List<XRLoader> loaders = XRGeneralSettings.Instance.Manager.loaders;
-        Debug.Log("Active Loader here should be OpenVRLoader, active loader is: " + XRGeneralSettings.Instance.Manager.activeLoader.GetType().ToString());
+       // Debug.Log("Active Loader here should be OpenVRLoader, active loader is: " + XRGeneralSettings.Instance.Manager.activeLoader.GetType().ToString());
 
         setupfinished = false;
         //clear default options
@@ -107,8 +161,10 @@ public class practice : MonoBehaviour
         {
             SimpleSmoothMouseLook mouseController = xrrig.AddComponent<SimpleSmoothMouseLook>();
         }
+
         em = VarjoEventManager.Instance;
         et = new VarjoET(Camera.main);
+       // Console.Log("Varjo EM: " + em);
 
         _createNewSubjectCallback = (jsonArray) =>
         {
@@ -126,29 +182,7 @@ public class practice : MonoBehaviour
             Subjectinfo.instance.SetNotes("Notes dont matter here");
             setupfinished = true;
 
-            //DEINITIALIZE ALL LOADERS THAT ARE NOT VARJO
-            List<XRLoader> loaders = XRGeneralSettings.Instance.Manager.loaders;
-            for (int loaderIndex = loaders.Count - 1; loaderIndex >= 0; --loaderIndex)
-            {
-                XRLoader loader = loaders[loaderIndex];
-
-                Debug.Log("Loader type: " + loader.GetType());
-
-                if (loader.GetType().ToString() == "Varjo.XR.VarjoLoader")
-                {
-                    
-                    loader.Initialize();
-                    loader.Start();
-
-                }
-
-
-
-                //  Debug.Log("Loader: "+ loader);
-                //  loaders.RemoveAt(1);
-                //  Debug.Log("Removed loader ");
-
-            }
+            //Xr_setting();
 
             /*
             foreach (XRLoader currloader in loaders)
@@ -160,9 +194,9 @@ public class practice : MonoBehaviour
                 }
             }
             */
-            Debug.Log("Varjo should now be initialized, but active loader should still be OpenVRLoader, active loader is: " + XRGeneralSettings.Instance.Manager.activeLoader.GetType().ToString());
-            et.calibrate();
-            Debug.Log(VarjoEyeTracking.GetGazeCalibrationQuality());
+           // Debug.Log("Varjo should now be initialized, but active loader should still be OpenVRLoader, active loader is: " + XRGeneralSettings.Instance.Manager.activeLoader.GetType().ToString());
+            
+          //  Debug.Log(VarjoEyeTracking.GetGazeCalibrationQuality());
             SceneManager.LoadScene("MainMenu");
 
             
@@ -235,30 +269,55 @@ public class practice : MonoBehaviour
         SetupCanvas.SetActive(true);
     }
 
-    public void beginclick()
+
+    public void Xr_setting()
     {
-        List<XRLoader> loaders = XRGeneralSettings.Instance.Manager.loaders;
-        for (int loaderIndex = loaders.Count - 1; loaderIndex >= 0; --loaderIndex)
+        Console.Log("count number value: " + InitalLoaderState.countnum);
+        if (InitalLoaderState.countnum == 0)
         {
-            XRLoader loader = loaders[loaderIndex];
-
-            Debug.Log("Loader type: " + loader.GetType());
-
-            if (loader.GetType().ToString() == "Varjo.XR.VarjoLoader")
+            try
             {
+                List<XRLoader> loaders = XRGeneralSettings.Instance.Manager.loaders;
+                for (int loaderIndex = loaders.Count - 1; loaderIndex >= 0; --loaderIndex)
+                {
+                    XRLoader loader = loaders[loaderIndex];
 
-                loader.Initialize();
-                loader.Start();
+                    Debug.Log("Loader type: " + loader.GetType());
+
+                    if (loader.GetType().ToString() == "Varjo.XR.VarjoLoader")
+                    {
+
+                        // XRGeneralSettings.Instance.Manager.StartSubsystems();
+                        //loader.Initialize();
+                        //loader.Start();
+
+                    }
+                    else
+                    {
+                        loader.Stop();
+                        loader.Deinitialize();
+                    }
+
+                }
 
             }
+            catch (System.Exception io)
+            {
+                Console.Log("exception at login sceen: " + io);
+            }
+     
 
-
-
-            //  Debug.Log("Loader: "+ loader);
-            //  loaders.RemoveAt(1);
-            //  Debug.Log("Removed loader ");
-
+            InitalLoaderState.countnum = InitalLoaderState.countnum + 1;
         }
+        else {
+            Console.Log("not calling it again babe");
+        }
+    }
+
+    public void beginclick()
+    {
+
+        //Xr_setting();
 
         /*
         foreach (XRLoader currloader in loaders)
@@ -270,13 +329,17 @@ public class practice : MonoBehaviour
             }
         }
         */
-        Debug.Log("Active Loader here should be Varjo, active loader is: " + XRGeneralSettings.Instance.Manager.activeLoader.GetType().ToString());
 
-        Subject s = gameObject.GetComponent<DatabaseUtil>().Current;
+        XRGeneralSettings.Instance.Manager.ActiveLoaderAs<VarjoLoader>();
+        XRGeneralSettings.Instance.Manager.InitializeLoader();
+        XRGeneralSettings.Instance.Manager.StartSubsystems();
+       // Debug.Log("Active Loader here should be Varjo, active loader is: " + XRGeneralSettings.Instance.Manager.ActiveLoaderAs<VarjoLoader>());
+
+       Subject s = gameObject.GetComponent<DatabaseUtil>().Current;
         Subjectinfo.instance.SetSubjectInInfo(s);
         Subjectinfo.instance.SetNotes("Notes dont matter here");
         setupfinished = true;
-        et.calibrate();
+        //et.calibrate();s
         Debug.Log(VarjoEyeTracking.GetGazeCalibrationQuality());
         
         SceneManager.LoadScene("MainMenu");
@@ -298,6 +361,13 @@ public class practice : MonoBehaviour
         button.transform.position = position;
         button.GetComponent<RectTransform>().sizeDelta = size;
         button.GetComponent<Button>().onClick.AddListener(method);
+    }
+
+
+    private void OnDestroy()
+    {
+        Xr_setting();
+        et.calibrate();
     }
 
 }
