@@ -234,8 +234,8 @@ public class ReadingTaskScript : MonoBehaviour
                             eyeData.right = right;
                             eyeData.average = average;
 
-                            leftgazepoint.transform.position = eyeData.left.position + (currentrecdata.approxFocusDist[currentframefordata] + 2f) * eyeData.left.gazeDirection;
-                            rightgazepoint.transform.position = eyeData.right.position + (currentrecdata.approxFocusDist[currentframefordata] + 2f) * eyeData.right.gazeDirection;
+                            leftgazepoint.transform.position = eyeData.left.position + (currentrecdata.approxFocusDist[currentframefordata] + 6f) * eyeData.left.gazeDirection;
+                            rightgazepoint.transform.position = eyeData.right.position + (currentrecdata.approxFocusDist[currentframefordata] + 6f) * eyeData.right.gazeDirection;
                             //GazeVisualizer.spawn
                             currentframefordata++;
                             nanosecondssincelastupdate = 0;

@@ -304,7 +304,7 @@ public class SmoothPursuitScriot : MonoBehaviour
                     else
                     {
                         nanosecondssincelastupdate += Time.deltaTime * 1000000000;
-                        if (currentrecdata.TimestampNS[currentframefordata + 1] - currentrecdata.TimestampNS[currentframefordata] <= nanosecondssincelastupdate)
+                        if ((currentrecdata.TimestampNS[currentframefordata + 1] - currentrecdata.TimestampNS[currentframefordata] <= nanosecondssincelastupdate) || currentframefordata == 0)
                         {
 
                             try
@@ -340,10 +340,8 @@ public class SmoothPursuitScriot : MonoBehaviour
                             eyeData.right = right;
                             eyeData.average = average;
 
-                            leftgazepoint.transform.position = eyeData.left.position + currentrecdata.approxFocusDist[currentframefordata] * eyeData.left.gazeDirection;
-                            rightgazepoint.transform.position = eyeData.right.position + currentrecdata.approxFocusDist[currentframefordata] * eyeData.right.gazeDirection;
-                            leftgazepoint.transform.position = new Vector3(leftgazepoint.transform.position.x, leftgazepoint.transform.position.y, leftgazepoint.transform.position.z + 5);
-                            rightgazepoint.transform.position = new Vector3(rightgazepoint.transform.position.x, rightgazepoint.transform.position.y, rightgazepoint.transform.position.z + 5);
+                            leftgazepoint.transform.position = eyeData.left.position + (currentrecdata.approxFocusDist[currentframefordata] + 6f) * eyeData.left.gazeDirection;
+                            rightgazepoint.transform.position = eyeData.right.position + (currentrecdata.approxFocusDist[currentframefordata] + 6f) * eyeData.right.gazeDirection;
                             //GazeVisualizer.spawn
                             currentframefordata++;
                             nanosecondssincelastupdate = 0;

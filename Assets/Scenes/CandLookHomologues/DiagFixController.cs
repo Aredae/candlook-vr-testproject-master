@@ -86,12 +86,13 @@ public class DiagFixController : MonoBehaviour
     private int currentframefordata;
     private float nanosecondssincelastupdate;
     public GameObject controllers;
-
+    private bool whatever;
     //private Varjo.XR.VarjoEventManager em;
 
     // Start is called before the first frame update
     void Start()
     {
+        whatever = true;
         currentframefordata = 0;
         nanosecondssincelastupdate = 0;
         if (GameObject.Find("DetailsForReplay") != null)
@@ -189,11 +190,11 @@ public class DiagFixController : MonoBehaviour
             try
             {
                 WaitingTime = Int32.Parse(gameprams[3]);
-                Console.WriteLine(WaitingTime);
+                Debug.Log(WaitingTime);
             }
             catch (FormatException)
             {
-                Console.WriteLine($"Unable to parse '{gameprams[3]}'");
+                Debug.Log($"Unable to parse '{gameprams[3]}'");
             }
 
             _createGetTaskGazeDataCallback = (jsonArray) =>
@@ -365,16 +366,20 @@ public class DiagFixController : MonoBehaviour
             {
                 if (replay)
                 {
-                    if (currentframefordata + 1 == currentrecdata.TimestampNS.Count)
+                    if (currentframefordata + 1 >= currentrecdata.TimestampNS.Count)
                     {
                         
                     } 
                     else
                     {
-                        nanosecondssincelastupdate += Time.deltaTime * 1000000000;
-                        if (currentrecdata.TimestampNS[currentframefordata + 1] - currentrecdata.TimestampNS[currentframefordata] <= nanosecondssincelastupdate)
+                        nanosecondssincelastupdate += (Time.deltaTime * 1000000000)*60;
+                        if ((currentrecdata.TimestampNS[currentframefordata + 1] - currentrecdata.TimestampNS[currentframefordata] <= nanosecondssincelastupdate) || currentframefordata ==0)
                         {
-
+                            if (whatever)
+                            {
+                                Debug.Log("First frame of et data display");
+                            }
+                            
                             try
                             {
                                 Vector3 leftpositiontest = new Vector3(currentrecdata.LeftEyePosX[currentframefordata], currentrecdata.LeftEyePosY[currentframefordata], currentrecdata.LeftEyePosZ[currentframefordata]);
@@ -408,10 +413,8 @@ public class DiagFixController : MonoBehaviour
                             eyeData.right = right;
                             eyeData.average = average;
 
-                            leftgazepoint.transform.position = eyeData.left.position + currentrecdata.approxFocusDist[currentframefordata] * eyeData.left.gazeDirection;
-                            rightgazepoint.transform.position = eyeData.right.position + currentrecdata.approxFocusDist[currentframefordata] * eyeData.right.gazeDirection;
-                            leftgazepoint.transform.position = new Vector3(leftgazepoint.transform.position.x, leftgazepoint.transform.position.y, leftgazepoint.transform.position.z + 5);
-                            rightgazepoint.transform.position = new Vector3(rightgazepoint.transform.position.x, rightgazepoint.transform.position.y, rightgazepoint.transform.position.z + 5);
+                            leftgazepoint.transform.position = eyeData.left.position + (currentrecdata.approxFocusDist[currentframefordata]+7f) * eyeData.left.gazeDirection;
+                            rightgazepoint.transform.position = eyeData.right.position + (currentrecdata.approxFocusDist[currentframefordata]+7f) * eyeData.right.gazeDirection;
                             //GazeVisualizer.spawn
                             currentframefordata++;
                             nanosecondssincelastupdate = 0;
@@ -423,6 +426,11 @@ public class DiagFixController : MonoBehaviour
 
                 if (gametype == 0 || gametype == 1)
                 {
+                    if (whatever)
+                    {
+                        Debug.Log("staring movement stuff");
+                    }
+                    
                     if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                     {
                         recorder.Update();
@@ -556,7 +564,7 @@ public class DiagFixController : MonoBehaviour
                     }
                 }
             }
-            
+            whatever = false;
         }
         
 
