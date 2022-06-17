@@ -29,6 +29,7 @@ public class DiagFixController : MonoBehaviour
 
     public GameObject timerslider;
     private int WaitingTime = 1;
+    private int SavedWaitingTime;
     private static float POS_DURATION = 1.0f;
     private static int N_SMALL_STEPS = 9;
     private static int N_Back_steps = 0;
@@ -77,6 +78,7 @@ public class DiagFixController : MonoBehaviour
     public GameObject pointers;
     private bool waitrunning;
     private float waitingtimer;
+    
 
     public GameObject countdowntimer;
     private Action<string> _createGetTaskGazeDataCallback;
@@ -84,14 +86,17 @@ public class DiagFixController : MonoBehaviour
 
     private DB db;
     private int currentframefordata;
-    private float nanosecondssincelastupdate;
+    private double nanosecondssincelastupdate;
     public GameObject controllers;
     private bool whatever;
+    private bool eyevisualizersmoved;
     //private Varjo.XR.VarjoEventManager em;
 
     // Start is called before the first frame update
     void Start()
     {
+        Application.targetFrameRate = 90;
+        eyevisualizersmoved = false;
         whatever = true;
         currentframefordata = 0;
         nanosecondssincelastupdate = 0;
@@ -190,6 +195,7 @@ public class DiagFixController : MonoBehaviour
             try
             {
                 WaitingTime = Int32.Parse(gameprams[3]);
+                SavedWaitingTime = Int32.Parse(gameprams[3]);
                 Debug.Log(WaitingTime);
             }
             catch (FormatException)
@@ -364,207 +370,364 @@ public class DiagFixController : MonoBehaviour
         {
             if (!pause)
             {
+                //Execution during replay
                 if (replay)
                 {
-                    if (currentframefordata + 1 >= currentrecdata.TimestampNS.Count)
+                    nanosecondssincelastupdate += (double)Time.deltaTime * (double)1000000000;
+                    //if ((currentrecdata.TimestampNS[currentframefordata + 1] - currentrecdata.TimestampNS[currentframefordata] <= nanosecondssincelastupdate) || currentframefordata == 0)
+                    if (((nanosecondssincelastupdate >= currentrecdata.TimestampNS[currentframefordata]) || currentframefordata == 0) && replay)
                     {
+                            if (currentframefordata + 1 >= currentrecdata.TimestampNS.Count)
+                            {
+                                
+                            }
+                            else
+                            {
+                                if (whatever)
+                                {
+                                    Debug.Log("First frame of et data display");
+                                }
+
+                                try
+                                {
+                                    Vector3 leftpositiontest = new Vector3(currentrecdata.LeftEyePosX[currentframefordata], currentrecdata.LeftEyePosY[currentframefordata], currentrecdata.LeftEyePosZ[currentframefordata]);
+                                }
+                                catch (ArgumentOutOfRangeException e)
+                                {
+                                    Debug.Log(e);
+
+                                }
+                                Vector3 leftposition = new Vector3(currentrecdata.LeftEyePosX[currentframefordata], currentrecdata.LeftEyePosY[currentframefordata], currentrecdata.LeftEyePosZ[currentframefordata]);
+                                Vector3 rightposition = new Vector3(currentrecdata.RightEyePosX[currentframefordata], currentrecdata.RightEyePosY[currentframefordata], currentrecdata.RightEyePosZ[currentframefordata]);
+                                Vector3 leftgazedir = new Vector3(currentrecdata.LeftGazeDirX[currentframefordata], currentrecdata.LeftGazeDirY[currentframefordata], currentrecdata.LeftGazeDirZ[currentframefordata]);
+                                Vector3 rightgazedir = new Vector3(currentrecdata.RightGazeDirX[currentframefordata], currentrecdata.RightGazeDirY[currentframefordata], currentrecdata.RightGazeDirZ[currentframefordata]);
+                                Vector3 leftgazedirrel = new Vector3(currentrecdata.LeftGazeDirRelX[currentframefordata], currentrecdata.LeftGazeDirRelY[currentframefordata], currentrecdata.LeftGazeDirRelZ[currentframefordata]);
+                                Vector3 rightgazedirrel = new Vector3(currentrecdata.RightGazeDirRelX[currentframefordata], currentrecdata.RightGazeDirRelY[currentframefordata], currentrecdata.RightGazeDirRelZ[currentframefordata]);
+
+                                Eye left = new Eye();
+                                left.position = leftposition;
+                                left.gazeDirection = leftgazedir;
+                                left.gazeDirectionRel = leftgazedirrel;
+                                Eye right = new Eye();
+                                right.position = rightposition;
+                                right.gazeDirection = rightgazedir;
+                                right.gazeDirectionRel = rightgazedirrel;
+                                Eye average = new Eye();
+                                average.position = (rightposition + leftposition) / 2;
+                                average.gazeDirection = (rightgazedir + leftgazedir) / 2;
+                                average.gazeDirectionRel = (rightgazedirrel + leftgazedirrel) / 2;
+                                EyeData eyeData = new EyeData();
+                                eyeData.left = left;
+                                eyeData.right = right;
+                                eyeData.average = average;
+
+                                leftgazepoint.transform.position = eyeData.left.position + (currentrecdata.approxFocusDist[currentframefordata] + 7f) * eyeData.left.gazeDirection;
+                                rightgazepoint.transform.position = eyeData.right.position + (currentrecdata.approxFocusDist[currentframefordata] + 7f) * eyeData.right.gazeDirection;
+                                //GazeVisualizer.spawn
+                                nanosecondssincelastupdate = currentrecdata.TimestampNS[currentframefordata];
+                                eyevisualizersmoved = true;
+                                currentframefordata++;
+
+                            }
+
                         
-                    } 
-                    else
-                    {
-                        nanosecondssincelastupdate += (Time.deltaTime * 1000000000)*60;
-                        if ((currentrecdata.TimestampNS[currentframefordata + 1] - currentrecdata.TimestampNS[currentframefordata] <= nanosecondssincelastupdate) || currentframefordata ==0)
+
+                        if (gametype == 0 || gametype == 1)
                         {
                             if (whatever)
                             {
-                                Debug.Log("First frame of et data display");
+                                Debug.Log("staring movement stuff");
                             }
-                            
-                            try
+
+                            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                             {
-                                Vector3 leftpositiontest = new Vector3(currentrecdata.LeftEyePosX[currentframefordata], currentrecdata.LeftEyePosY[currentframefordata], currentrecdata.LeftEyePosZ[currentframefordata]);
+                                recorder.Update();
                             }
-                            catch (ArgumentOutOfRangeException e)
+                            timer = currentframefordata / 90;
+                            if (started && timer >= WaitingTime && N_repetitions > 0)
                             {
-                                Debug.Log(e);
-
-                            }
-                            Vector3 leftposition = new Vector3(currentrecdata.LeftEyePosX[currentframefordata], currentrecdata.LeftEyePosY[currentframefordata], currentrecdata.LeftEyePosZ[currentframefordata]);
-                            Vector3 rightposition = new Vector3(currentrecdata.RightEyePosX[currentframefordata], currentrecdata.RightEyePosY[currentframefordata], currentrecdata.RightEyePosZ[currentframefordata]);
-                            Vector3 leftgazedir = new Vector3(currentrecdata.LeftGazeDirX[currentframefordata], currentrecdata.LeftGazeDirY[currentframefordata], currentrecdata.LeftGazeDirZ[currentframefordata]);
-                            Vector3 rightgazedir = new Vector3(currentrecdata.RightGazeDirX[currentframefordata], currentrecdata.RightGazeDirY[currentframefordata], currentrecdata.RightGazeDirZ[currentframefordata]);
-                            Vector3 leftgazedirrel = new Vector3(currentrecdata.LeftGazeDirRelX[currentframefordata], currentrecdata.LeftGazeDirRelY[currentframefordata], currentrecdata.LeftGazeDirRelZ[currentframefordata]);
-                            Vector3 rightgazedirrel = new Vector3(currentrecdata.RightGazeDirRelX[currentframefordata], currentrecdata.RightGazeDirRelY[currentframefordata], currentrecdata.RightGazeDirRelZ[currentframefordata]);
-
-                            Eye left = new Eye();
-                            left.position = leftposition;
-                            left.gazeDirection = leftgazedir;
-                            left.gazeDirectionRel = leftgazedirrel;
-                            Eye right = new Eye();
-                            right.position = rightposition;
-                            right.gazeDirection = rightgazedir;
-                            right.gazeDirectionRel = rightgazedirrel;
-                            Eye average = new Eye();
-                            average.position = (rightposition + leftposition) / 2;
-                            average.gazeDirection = (rightgazedir + leftgazedir) / 2;
-                            average.gazeDirectionRel = (rightgazedirrel + leftgazedirrel) / 2;
-                            EyeData eyeData = new EyeData();
-                            eyeData.left = left;
-                            eyeData.right = right;
-                            eyeData.average = average;
-
-                            leftgazepoint.transform.position = eyeData.left.position + (currentrecdata.approxFocusDist[currentframefordata]+7f) * eyeData.left.gazeDirection;
-                            rightgazepoint.transform.position = eyeData.right.position + (currentrecdata.approxFocusDist[currentframefordata]+7f) * eyeData.right.gazeDirection;
-                            //GazeVisualizer.spawn
-                            currentframefordata++;
-                            nanosecondssincelastupdate = 0;
-
-                        }
-                    }
-                }
-
-
-                if (gametype == 0 || gametype == 1)
-                {
-                    if (whatever)
-                    {
-                        Debug.Log("staring movement stuff");
-                    }
-                    
-                    if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
-                    {
-                        recorder.Update();
-                    }
-                    timer += Time.deltaTime;
-                    if (started && timer > WaitingTime && N_repetitions > 0)
-                    {
-                        if (timer > WaitingTime && N_repetitions > 0)
-                        {
-                            if (N_forward_steps < numstepsslidervalue)
-                            {
-                                step = MoveForward(step);
-                                ball.transform.position = step;
-                                timer = 0;
-                                N_forward_steps++;
-                            }
-                            else
-                            {
-                                if (N_Back_steps < numstepsslidervalue)
+                                if (timer >= WaitingTime && N_repetitions > 0)
                                 {
-                                    step = MoveBackwards(step);
-                                    ball.transform.position = step;
-                                    timer = 0;
-                                    N_Back_steps++;
+                                    if (N_forward_steps < numstepsslidervalue)
+                                    {
+                                        step = MoveForward(step);
+                                        ball.transform.position = step;
+                                        timer = 0;
+                                        N_forward_steps++;
+                                    }
+                                    else
+                                    {
+                                        if (N_Back_steps < numstepsslidervalue)
+                                        {
+                                            step = MoveBackwards(step);
+                                            ball.transform.position = step;
+                                            timer = 0;
+                                            N_Back_steps++;
+                                        }
+                                        else
+                                        {
+                                            N_Back_steps = N_SMALL_STEPS;
+                                            N_forward_steps = N_SMALL_STEPS;
+                                            N_repetitions--;
+                                        }
+
+                                    }
+                                    WaitingTime = WaitingTime + SavedWaitingTime;
+                                }
+                                
+                            }
+                            if (currentframefordata >= currentrecdata.TimestampNS.Count-3)
+                            {
+                                //canvas.SetActive(true);
+                                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
+                                {
+                                    OnDestroy();
+                                }
+                                started = false;
+                                WaitingTime = SavedWaitingTime;
+                                N_repetitions = 2;
+                                N_forward_steps = 0;
+                                N_Back_steps = 0;
+                                timer = 0;
+                                if (!replay)
+                                {
+                                    SettingsCanvas.SetActive(true);
                                 }
                                 else
                                 {
-                                    N_Back_steps = N_SMALL_STEPS;
-                                    N_forward_steps = N_SMALL_STEPS;
-                                    N_repetitions--;
+                                    Debug.Log(currentframefordata);
+                                    Debug.Log(currentrecdata.LeftEyePosX.Count);
+                                    currentframefordata = 0;
+                                    nanosecondssincelastupdate = 0;
+                                    startReplayButton.SetActive(true);
+                                    ExitReplayButton.SetActive(true);
+                                    PauseButton.SetActive(false);
+                                }
+                                pointers.SetActive(true);
+                            }
+                        }
+
+
+                        //Vertical fix
+                        if (gametype == 2)
+                        {
+                            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
+                            {
+                                recorder.Update();
+                            }
+                            timer = currentframefordata / 90;
+                            if (started && timer >= WaitingTime && ball.transform.position != endpos)
+                            {
+                                if (timer > WaitingTime && N_repetitions > 0)
+                                {
+                                    if (N_forward_steps < numstepsslidervalue)
+                                    {
+                                        step = MoveForward(step);
+                                        ball.transform.position = step;
+                                        timer = 0;
+                                        N_forward_steps++;
+                                    }
+                                    WaitingTime = WaitingTime + SavedWaitingTime;
                                 }
 
                             }
-                        }
-                    }
-                    else if (N_repetitions == 0 && timer > WaitingTime)
-                    {
-                        //canvas.SetActive(true);
-                        if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
-                        {
-                            OnDestroy();
-                        }
-                        started = false;
-                        N_repetitions = 2;
-                        N_forward_steps = 0;
-                        N_Back_steps = 0;
-                        timer = 0;
-                        if (!replay)
-                        {
-                            SettingsCanvas.SetActive(true);
-                        }
-                        else
-                        {
-                            Debug.Log(currentframefordata);
-                            Debug.Log(currentrecdata.LeftEyePosX.Count);
-                            currentframefordata = 0;
-                            nanosecondssincelastupdate = 0;
-                            startReplayButton.SetActive(true);
-                            ExitReplayButton.SetActive(true);
-                            PauseButton.SetActive(false);
-                        }
-                        pointers.SetActive(true);
-                    }
-                }
-
-
-                //Vertical fix
-                if (gametype == 2)
-                {
-                    if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
-                    {
-                        recorder.Update();
-                    }
-                    timer += Time.deltaTime;
-                    if (started && timer > WaitingTime && ball.transform.position != endpos)
-                    {
-                        if (timer > WaitingTime && N_repetitions > 0)
-                        {
-                            if (N_forward_steps < numstepsslidervalue)
+                            else if (ball.transform.position == endpos && timer >= WaitingTime)
                             {
-                                step = MoveForward(step);
-                                ball.transform.position = step;
-                                timer = 0;
-                                N_forward_steps++;
+                                Debug.Log(ball.transform.position);
+                                if (numhorizontals != horizontalsteps)
+                                {
+                                    endpos = MoveHorizontally(endpos);
+                                    lasthorrizontalpos = MoveHorizontally(lasthorrizontalpos);
+                                    ball.transform.position = lasthorrizontalpos;
+                                    step = ball.transform.position;
+                                    N_forward_steps = 0;
+                                    WaitingTime = WaitingTime + SavedWaitingTime;
+                                    numhorizontals++;
+                                    timer = 0;
+                                }
+                                else
+                                {
+                                    //canvas.SetActive(true);
+                                    lasthorrizontalpos = lrinit_pos;
+                                    if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
+                                    {
+                                        OnDestroy();
+                                    }
+                                    started = false;
+                                    WaitingTime = SavedWaitingTime;
+                                    ball.transform.position = lrinit_pos;
+                                    endpos = lrinit_end_pos;
+                                    N_repetitions = 2;
+                                    N_forward_steps = 0;
+                                    N_Back_steps = 0;
+                                    numhorizontals = 0;
+                                    if (!replay)
+                                    {
+                                        SettingsCanvas.SetActive(true);
+                                    }
+                                    else
+                                    {
+                                        currentframefordata = 0;
+                                        nanosecondssincelastupdate = 0;
+                                        Debug.Log(currentframefordata);
+                                        startReplayButton.SetActive(true);
+                                        ExitReplayButton.SetActive(true);
+                                        PauseButton.SetActive(false);
+                                    }
+                                    pointers.SetActive(true);
+                                    timer = 0;
+                                }
                             }
                         }
+                        eyevisualizersmoved = false;
+
                     }
-                    else if (ball.transform.position == endpos && timer > WaitingTime)
-                    {
-                        Debug.Log(ball.transform.position);
-                        if (numhorizontals != horizontalsteps)
+                    whatever = false;
+                }
+                //Execution during regular task
+                else
+                {
+                        if (gametype == 0 || gametype == 1)
                         {
-                            endpos = MoveHorizontally(endpos);
-                            lasthorrizontalpos = MoveHorizontally(lasthorrizontalpos);
-                            ball.transform.position = lasthorrizontalpos;
-                            step = ball.transform.position;
-                            N_forward_steps = 0;
-                            numhorizontals++;
-                            timer = 0;
-                        }
-                        else
-                        {
-                            //canvas.SetActive(true);
-                            lasthorrizontalpos = lrinit_pos;
+                            if (whatever)
+                            {
+                                Debug.Log("staring movement stuff");
+                            }
+
                             if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                             {
-                                OnDestroy();
+                                recorder.Update();
                             }
-                            started = false;
-                            ball.transform.position = lrinit_pos;
-                            endpos = lrinit_end_pos;
-                            N_repetitions = 2;
-                            N_forward_steps = 0;
-                            N_Back_steps = 0;
-                            numhorizontals = 0;
-                            if (!replay)
+                            timer += Time.deltaTime;
+                            if (started && timer > WaitingTime && N_repetitions > 0)
                             {
-                                SettingsCanvas.SetActive(true);
+                                if (timer > WaitingTime && N_repetitions > 0)
+                                {
+                                    if (N_forward_steps < numstepsslidervalue)
+                                    {
+                                        step = MoveForward(step);
+                                        ball.transform.position = step;
+                                        timer = 0;
+                                        N_forward_steps++;
+                                    }
+                                    else
+                                    {
+                                        if (N_Back_steps < numstepsslidervalue)
+                                        {
+                                            step = MoveBackwards(step);
+                                            ball.transform.position = step;
+                                            timer = 0;
+                                            N_Back_steps++;
+                                        }
+                                        else
+                                        {
+                                            N_Back_steps = N_SMALL_STEPS;
+                                            N_forward_steps = N_SMALL_STEPS;
+                                            N_repetitions--;
+                                        }
+
+                                    }
+                                }
                             }
-                            else
+                            else if (N_repetitions == 0 && timer > WaitingTime)
                             {
-                                currentframefordata = 0;
-                                nanosecondssincelastupdate = 0;
-                                startReplayButton.SetActive(true);
-                                ExitReplayButton.SetActive(true);
-                                PauseButton.SetActive(false);
+                                //canvas.SetActive(true);
+                                if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
+                                {
+                                    OnDestroy();
+                                }
+                                started = false;
+                                N_repetitions = 2;
+                                N_forward_steps = 0;
+                                N_Back_steps = 0;
+                                timer = 0;
+                                if (!replay)
+                                {
+                                    SettingsCanvas.SetActive(true);
+                                }
+                                else
+                                {
+                                    Debug.Log(currentframefordata);
+                                    Debug.Log(currentrecdata.LeftEyePosX.Count);
+                                    currentframefordata = 0;
+                                    nanosecondssincelastupdate = 0;
+                                    startReplayButton.SetActive(true);
+                                    ExitReplayButton.SetActive(true);
+                                    PauseButton.SetActive(false);
+                                }
+                                pointers.SetActive(true);
                             }
-                            pointers.SetActive(true);
-                            timer = 0;
+                        }
+
+
+                        //Vertical fix
+                        if (gametype == 2)
+                        {
+                            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
+                            {
+                                recorder.Update();
+                            }
+                            timer += Time.deltaTime;
+                            if (started && timer > WaitingTime && ball.transform.position != endpos)
+                            {
+                                if (timer > WaitingTime && N_repetitions > 0)
+                                {
+                                    if (N_forward_steps < numstepsslidervalue)
+                                    {
+                                        step = MoveForward(step);
+                                        ball.transform.position = step;
+                                        timer = 0;
+                                        N_forward_steps++;
+                                    }
+                                }
+                            }
+                            else if (ball.transform.position == endpos && timer > WaitingTime)
+                            {
+                                Debug.Log(ball.transform.position);
+                                if (numhorizontals != horizontalsteps)
+                                {
+                                    endpos = MoveHorizontally(endpos);
+                                    lasthorrizontalpos = MoveHorizontally(lasthorrizontalpos);
+                                    ball.transform.position = lasthorrizontalpos;
+                                    step = ball.transform.position;
+                                    N_forward_steps = 0;
+                                    numhorizontals++;
+                                    timer = 0;
+                                }
+                                else
+                                {
+                                    //canvas.SetActive(true);
+                                    lasthorrizontalpos = lrinit_pos;
+                                    if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
+                                    {
+                                        OnDestroy();
+                                    }
+                                    started = false;
+                                    ball.transform.position = lrinit_pos;
+                                    endpos = lrinit_end_pos;
+                                    N_repetitions = 2;
+                                    N_forward_steps = 0;
+                                    N_Back_steps = 0;
+                                    numhorizontals = 0;
+                                    if (!replay)
+                                    {
+                                        SettingsCanvas.SetActive(true);
+                                    }
+                                    else
+                                    {
+                                        currentframefordata = 0;
+                                        nanosecondssincelastupdate = 0;
+                                        startReplayButton.SetActive(true);
+                                        ExitReplayButton.SetActive(true);
+                                        PauseButton.SetActive(false);
+                                    }
+                                    pointers.SetActive(true);
+                                    timer = 0;
+                                }
+                            }
                         }
                     }
-                }
             }
-            whatever = false;
         }
         
 
