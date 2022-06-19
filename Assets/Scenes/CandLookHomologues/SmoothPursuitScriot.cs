@@ -56,6 +56,7 @@ public class SmoothPursuitScriot : MonoBehaviour
 
     private int direction;
     private int speed;
+    private int initspeed;
     private int repetitions;
     private int gametype;
     private int verticalsteps;
@@ -86,6 +87,7 @@ public class SmoothPursuitScriot : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Application.targetFrameRate = 90;
         currentframefordata = 0;
         nanosecondssincelastupdate = 0;
         pause = false;
@@ -153,6 +155,7 @@ public class SmoothPursuitScriot : MonoBehaviour
             try
             {
                 speed = Int32.Parse(speedparam[0]);
+                initspeed = speed;
                 Console.WriteLine(speed);
             }
             catch (FormatException)
@@ -365,7 +368,8 @@ public class SmoothPursuitScriot : MonoBehaviour
                                     t = 0;
                                 }
                             }
-                            t += (currentframefordata/85) / speed;
+                            
+                            t += Time.deltaTime / speed; //First 90 frames will work as intended, how to fix for the rest?
                             ball.transform.position = Vector3.Lerp(currentstartpos, endball.transform.position, t);
                         }
                         else
@@ -395,6 +399,7 @@ public class SmoothPursuitScriot : MonoBehaviour
                             {
                                 currentframefordata = 0;
                                 nanosecondssincelastupdate = 0;
+                                speed = initspeed;
                                 startReplayButton.SetActive(true);
                                 ExitReplayButton.SetActive(true);
                                 PauseButton.SetActive(false);
@@ -428,7 +433,7 @@ public class SmoothPursuitScriot : MonoBehaviour
                                     t = 0;
                                 }
                             }
-                            t += (currentframefordata / 85) / speed;
+                            t += Time.deltaTime / speed;
                             ball.transform.position = Vector3.Lerp(currentstartpos, endball.transform.position, t);
                         }
                         else
@@ -444,13 +449,35 @@ public class SmoothPursuitScriot : MonoBehaviour
                                 endball.transform.position = rlinit_end_pos;
                             }
                             t = 0;
-                            if (UnityEngine.XR.XRSettings.isDeviceActive)
+                            t = 0;
+                            if (UnityEngine.XR.XRSettings.isDeviceActive && !replay && usersignedinn)
                             {
                                 OnDestroy();
                             }
                             started = false;
-                            repetitions = (int)repetitionSlider.GetComponent<Slider>().value;
-                            SettingsCanvas.SetActive(true);
+                            if (!replay)
+                            {
+                                repetitions = (int)repetitionSlider.GetComponent<Slider>().value;
+                                SettingsCanvas.SetActive(true);
+                            }
+                            else
+                            {
+                                currentframefordata = 0;
+                                nanosecondssincelastupdate = 0;
+                                speed = initspeed;
+                                startReplayButton.SetActive(true);
+                                ExitReplayButton.SetActive(true);
+                                PauseButton.SetActive(false);
+                                try
+                                {
+                                    repetitions = Int32.Parse(gameprams[4]);
+                                    Console.WriteLine(repetitions);
+                                }
+                                catch (FormatException)
+                                {
+                                    Console.WriteLine($"Unable to parse '{gameprams[0]}'");
+                                }
+                            }
                         }
                     }
 
@@ -503,7 +530,7 @@ public class SmoothPursuitScriot : MonoBehaviour
                             if (!replay)
                             {
                                 repetitions = (int)repetitionSlider.GetComponent<Slider>().value;
-                                SettingsCanvas.SetActive(true);
+                                StartCoroutine(waitAndShowFinishText());
                             }
                             else
                             {
@@ -564,7 +591,7 @@ public class SmoothPursuitScriot : MonoBehaviour
                             }
                             started = false;
                             repetitions = (int)repetitionSlider.GetComponent<Slider>().value;
-                            SettingsCanvas.SetActive(true);
+                            StartCoroutine(waitAndShowFinishText());
                         }
                     }
                 }
@@ -572,6 +599,15 @@ public class SmoothPursuitScriot : MonoBehaviour
             }
             
         }
+    }
+
+    IEnumerator waitAndShowFinishText()
+    {
+        countdowntimer.GetComponent<Text>().text = "Task finished, well done!";
+        countdowntimer.SetActive(true);
+        yield return new WaitForSeconds(2);
+        countdowntimer.SetActive(false);
+        SettingsCanvas.SetActive(true);
     }
     IEnumerator waitAndApplySettings()
     {

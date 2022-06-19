@@ -3347,7 +3347,7 @@ MonoBehaviour:
     m_BestFit: 0
     m_MinSize: 1
     m_MaxSize: 100
-    m_Alignment: 0
+    m_Alignment: 1
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 1
@@ -3378,7 +3378,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -191, y: 0}
+  m_AnchoredPosition: {x: -139, y: 0}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1506444813
@@ -4914,6 +4914,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   xrrig: {fileID: 0}
   user: {fileID: 0}
+  toFixButton: {fileID: 0}
+  toSmoothButton: {fileID: 0}
+  toReadingButton: {fileID: 0}
+  toReplayButton: {fileID: 0}
+  toEtButton: {fileID: 0}
+  returnToLogin: {fileID: 0}
 --- !u!1001 &1849261474
 PrefabInstance:
   m_ObjectHideFlags: 0

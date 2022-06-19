@@ -258,6 +258,14 @@ public class ReadingTaskScript : MonoBehaviour
             //record stuff
         
     }
+    IEnumerator waitAndShowFinishText()
+    {
+        countdowntimer.GetComponent<Text>().text = "Task finished, well done!";
+        countdowntimer.SetActive(true);
+        yield return new WaitForSeconds(2);
+        countdowntimer.SetActive(false);
+        settingscanvas.SetActive(true);
+    }
     public void GetGazeData(int userid, string timestamp)
     {
         StartCoroutine(webrequest.getGazeDataForRecording("http://localhost/getGazeDataForTask.php", userid, timestamp, _createGetTaskGazeDataCallback));
@@ -316,7 +324,7 @@ public class ReadingTaskScript : MonoBehaviour
         }
         else
         {
-            settingscanvas.SetActive(true);
+            StartCoroutine(waitAndShowFinishText());
         }
         finishedButton.SetActive(false);
         text.GetComponent<Text>().text = init_text;

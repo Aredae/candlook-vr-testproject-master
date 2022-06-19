@@ -309,7 +309,7 @@ public class practice : MonoBehaviour
         Subjectinfo.instance.SetSubjectInInfo(s);
         Subjectinfo.instance.SetNotes("Notes dont matter here");
         setupfinished = true;
-        //StartCoroutine(StartXR("Varjo"));
+        StartCoroutine(StartXR("Varjo"));
         SceneManager.LoadScene("MainMenu");
         
     }

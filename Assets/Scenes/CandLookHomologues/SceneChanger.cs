@@ -14,6 +14,13 @@ public class SceneChanger : MonoBehaviour
     private VarjoEventManager em;
     public GameObject user;
 
+    public GameObject toFixButton;
+    public GameObject toSmoothButton;
+    public GameObject toReadingButton;
+    public GameObject toReplayButton;
+    public GameObject toEtButton;
+    public GameObject returnToLogin;
+
 
 
     void Start()
@@ -140,11 +147,30 @@ public class SceneChanger : MonoBehaviour
         {
             Console.Log("et should start recalibration");
             et.calibrate();
+            
         }
         else
         {
             Console.Log("Can't detect headset, do you have the headset properly connected?");
         }
+    }
+
+    IEnumerator WaitAndPerformEt()
+    {
+        toFixButton.SetActive(false);
+        toSmoothButton.SetActive(false);
+        toReadingButton.SetActive(false);
+        toReplayButton.SetActive(false);
+        toEtButton.SetActive(false);
+        returnToLogin.SetActive(false);
+        et.calibrate();
+        yield return new WaitUntil(() => VarjoEyeTracking.GetGaze().status.Equals(VarjoEyeTracking.GazeStatus.Valid));
+        toFixButton.SetActive(true);
+        toSmoothButton.SetActive(true);
+        toReadingButton.SetActive(true);
+        toReplayButton.SetActive(true);
+        toEtButton.SetActive(true);
+        returnToLogin.SetActive(true);
     }
 
     public void exit()

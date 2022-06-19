@@ -643,7 +643,8 @@ public class DiagFixController : MonoBehaviour
                                 timer = 0;
                                 if (!replay)
                                 {
-                                    SettingsCanvas.SetActive(true);
+                                    StartCoroutine(waitAndShowFinishText());
+                                    
                                 }
                                 else
                                 {
@@ -711,7 +712,7 @@ public class DiagFixController : MonoBehaviour
                                     numhorizontals = 0;
                                     if (!replay)
                                     {
-                                        SettingsCanvas.SetActive(true);
+                                    StartCoroutine(waitAndShowFinishText());
                                     }
                                     else
                                     {
@@ -731,6 +732,15 @@ public class DiagFixController : MonoBehaviour
         }
         
 
+    }
+
+    IEnumerator waitAndShowFinishText()
+    {
+        countdowntimer.GetComponent<Text>().text = "Task finished, well done!";
+        countdowntimer.SetActive(true);
+        yield return new WaitForSeconds(2);
+        countdowntimer.SetActive(false);
+        SettingsCanvas.SetActive(true);
     }
 
     IEnumerator waitAndApplySettings()
