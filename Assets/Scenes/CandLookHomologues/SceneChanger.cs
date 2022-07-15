@@ -155,23 +155,7 @@ public class SceneChanger : MonoBehaviour
         }
     }
 
-    IEnumerator WaitAndPerformEt()
-    {
-        toFixButton.SetActive(false);
-        toSmoothButton.SetActive(false);
-        toReadingButton.SetActive(false);
-        toReplayButton.SetActive(false);
-        toEtButton.SetActive(false);
-        returnToLogin.SetActive(false);
-        et.calibrate();
-        yield return new WaitUntil(() => VarjoEyeTracking.GetGaze().status.Equals(VarjoEyeTracking.GazeStatus.Valid));
-        toFixButton.SetActive(true);
-        toSmoothButton.SetActive(true);
-        toReadingButton.SetActive(true);
-        toReplayButton.SetActive(true);
-        toEtButton.SetActive(true);
-        returnToLogin.SetActive(true);
-    }
+    
 
     public void exit()
     {
