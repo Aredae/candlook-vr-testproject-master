@@ -69,7 +69,7 @@ public class d2script : MonoBehaviour
         rowtimer = 0;
         numrows = 14;
         numletters = 9;
-        waitduration = 3;
+        waitduration = 0;
         finishedtext.SetActive(false);
         retry.SetActive(false);
         ScoreResultPage.SetActive(false);
@@ -106,6 +106,13 @@ public class d2script : MonoBehaviour
                 startNewSeries();
                 scorer.nextSeries();
                 //startNewSeries();
+                if (allseriesfinished)
+                {
+                    ScoreResult result = scorer.summarise(canvas);
+                    showScore(result);
+                    allseriesfinished = false;
+                    alldone = true;
+                }
             }
             else
             {
@@ -219,8 +226,8 @@ public class d2script : MonoBehaviour
         ScoreResultPage.transform.GetChild(9).transform.GetChild(0).GetComponent<Text>().text += result.metrics.CP;
         ScoreResultPage.transform.GetChild(10).transform.GetChild(0).GetComponent<Text>().text += result.metrics.FR;
         ScoreResultPage.transform.GetChild(11).transform.GetChild(0).GetComponent<Text>().text += result.metrics.ED;
-        ScoreResultPage.transform.GetChild(13).GetComponent<Text>().text += System.Environment.NewLine + Subjectinfo.instance.GetName();
-        ScoreResultPage.transform.GetChild(14).GetComponent<Text>().text += System.Environment.NewLine + Subjectinfo.instance.GetNotes();
+        ScoreResultPage.transform.GetChild(13).GetComponent<Text>().text += "Are"; //System.Environment.NewLine + Subjectinfo.instance.GetName();
+        //ScoreResultPage.transform.GetChild(14).GetComponent<Text>().text += "Note"; // System.Environment.NewLine + Subjectinfo.instance.GetNotes();
         ScoreResultPage.SetActive(true);
         canvas.SetActive(false);
 
