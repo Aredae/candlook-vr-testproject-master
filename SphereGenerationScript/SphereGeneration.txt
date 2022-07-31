@@ -1,0 +1,271 @@
+import bpy
+import bmesh
+import mathutils
+import numpy as np
+import time
+
+from collections import defaultdict
+
+vert_mapping = [
+    (    1, 0),
+    (6, 30),
+    (6, 60),
+    (6, 90),
+    (6, 120),
+    (6, 150),
+    (1, 180),
+]
+
+# vert_mapping = [
+#     (1,   0),
+#     (2**10,  30),
+#     (2**8,  60),
+#     (2**6,  90),
+#     (2**4, 120),
+#     (12, 150),
+#     (1, 180),
+# ]
+
+# Number of vertices and their corresponding degrees
+vert_mapping = [
+    (1,       0),
+    (2**16,   0.04),
+    (2**15,   0.08),
+    (2**14,   0.12),
+    (2**13,   0.16),
+    (2**12,   0.20),
+    (2**12,   0.20+0.02),
+    (2**11,   0.24),
+    (2**11,   0.24+0.02),
+    (2**10,   0.28),
+    (2**10,   0.28+0.02),
+    (2**9,    0.32),
+    (2**9,    0.32+0.02),
+    (2**8,    0.36),
+    (2**8,    0.36+0.02),
+    (2**7,    0.40),
+    (2**7,    0.40+0.02),
+    (2**6,    0.44),
+    (2**6,    0.44+0.02),
+    (2**6,    0.48),
+    (2**6,    0.48+0.02),
+    (2**6,    0.52),
+    (2**6,    0.52+0.02),
+    (2**6,    0.56),
+    (2**6,    0.56+0.02),
+    (2**6,    0.60),
+    (2**6,    0.60+0.02),
+    (2**6,    0.64),
+    (2**6,    0.64+0.02),
+    (2**6,    0.68),
+    (2**6,    0.68+0.02),
+    (2**6,    0.72),
+    (2**6,    0.72+0.02),
+    (2**6,    0.76),
+    (2**6,    0.76+0.02),
+    (2**6,    0.80),
+    (2**6,    0.80+0.02),
+    (2**6,    0.84),
+    (2**6,    0.84+0.02),
+    (2**6,    0.88),
+    (2**6,    0.88+0.02),
+    (2**6,    0.92),
+    (2**6,    0.92+0.02),
+    (2**6,    0.96),
+    (2**6,    0.96+0.02),
+    (2**6,    1.00),
+    (2**6,    1.00+0.02),
+    (2**6,    1.04),
+    (2**6,    1.04+0.02),
+    (2**6,    1.08),
+    (2**6,    1.08+0.02),
+    (2**6,    1.12),
+    (2**6,    1.12+0.02),
+    (2**6,    1.16),
+    (2**6,    1.16+0.02),
+    (2**6,    1.20),
+    (2**6,    1.20+0.02),
+    (2**6,    1.24),
+    (2**6,    1.24+0.02),
+    (2**6,    1.28),
+    (2**6,    1.28+0.02),
+    (2**6,    1.32),
+    (2**6,    1.32+0.02),
+    (2**6,    1.36),
+    (2**6,    1.36+0.02),
+    (2**6,    1.40),
+    (2**6,    1.40+0.02),
+    (2**6,    1.44),
+    (2**6,    1.44+0.02),
+    (2**6,    1.48),
+    (2**6,    1.48+0.02),
+    (2**6,    1.52),
+    (2**6,    1.52+0.02),
+    (2**6,    1.56),
+    (2**6,    1.56+0.02),
+    (2**6,    1.60),
+    (2**6,    1.60+0.02),
+    (2**6,    1.64),
+    (2**6,    1.64+0.02),
+    (2**6,    1.68),
+    (2**6,    1.68+0.02),
+    (2**6,    1.72),
+    (2**6,    1.72+0.02),
+    (2**6,    1.76),
+    (2**6,    1.76+0.02),
+    (2**6,    1.80),
+    (2**6,    1.80+0.02),
+    (2**6,    1.84),
+    (2**6,    1.84+0.02),
+    (2**6,    1.88),
+    (2**6,    1.88+0.02),
+    (2**6,    1.92),
+    (2**6,    1.92+0.02),
+    (2**6,    1.96),
+    (2**6,    1.96+0.02),
+    (2**6,    2.00),
+    (2**6,    2.00+0.02),
+    (2**6,    2.04),
+    (2**6,    2.04+0.02),
+    (2**6,    2.08),
+    (2**6,    2.08+0.02),
+    (2**6,    2.12),
+    (2**6,    2.12+0.02),
+    (2**6,    2.16),
+    (2**6,    2.16+0.02),
+    (2**6,    2.20),
+    (2**6,    2.20+0.02),
+    (2**6,    2.24),
+    (2**6,    2.24+0.02),
+    (2**6,    2.28),
+    (2**6,    2.28+0.02),
+    (2**6,    2.32),
+    (2**6,    2.32+0.02),
+    (2**6,    2.36),
+    (2**6,    2.36+0.02),
+    (2**6,    2.40),
+    (2**6,    2.40+0.02),
+    (2**6,    2.44),
+    (2**6,    2.44+0.02),
+    (2**6,    2.48),
+    (2**6,    2.48+0.02),
+    (2**5,   30),
+    (2**5,   60),
+    (2**5,   90),
+    (2**5,  120),
+    (2**5,  150),
+    (1,     180),
+]
+
+start_time = time.time()
+
+verts = []
+
+for n, r in vert_mapping:
+    theta = np.linspace(0, 2*np.pi, n, endpoint=False)
+    pos_x = np.sin(np.radians(r)) * np.cos(theta)
+    pos_y = np.full((n,), np.cos(np.radians(r)))
+    pos_z = np.sin(np.radians(r)) * np.sin(theta)
+    vs = np.stack([np.array((x, y, z)) for x, y, z in zip(pos_x, pos_y, pos_z) if x >= 0 and z >= 0], axis=0)
+    verts.append(vs)
+
+# An array of the vertex positions
+verts = np.concatenate(verts)
+
+# Create array views based on the y coordinate of the vertices
+y_vals = np.unique(verts[:, 1])
+groups = [verts[verts[:, 1] == y_val] for y_val in y_vals]
+
+edges = set()
+
+# Compute the edges to enforce triangularization
+for g1, g2 in zip(groups[:-1], groups[1:]):
+    n1 = g1 if len(g1) > len(g2) else g2
+    n2 = g2 if len(g1) > len(g2) else g1
+    # Handle special case
+    if len(n2) == 1:
+        split_n2 = [n2[0] for _ in range(len(n1))]
+        n1_idxs = [np.flatnonzero((verts == v).all(1))[0] for v in n1]
+        n2_idx = np.flatnonzero((verts == n2[0]).all(1))[0]
+        idx_pairs = [(i, n2_idx) for i in n1_idxs]
+    else:
+        m_idx_pairs = []
+        m1 = np.linspace(0, 1, len(n1), endpoint=True)
+        m2 = np.linspace(0, 1, len(n2), endpoint=True)
+        j = 0
+        for i in range(len(n1)):
+            if m1[i] > m2[j]:
+                m_idx_pairs.append((i, j))
+                j += 1
+            m_idx_pairs.append((i, j))
+        n_map = [(n2[0], n1[0]), (n2[-1], n1[-1])] + [(n2[j], n1[i]) for i, j in m_idx_pairs]
+        idx_pairs = [(np.flatnonzero((verts == v[0]).all(1))[0], np.flatnonzero((verts == v[1]).all(1))[0]) for v in n_map]
+    edges.update(idx_pairs)
+
+for g in groups:
+    if len(g) == 1:
+        continue
+    # Use the loop below when computing the entire sphere
+    # for v1, v2 in zip(g, np.roll(g, 1, 0)):
+    # Use the loop below when computing the first quarter of the sphere
+    for v1, v2 in zip(g[:-1], g[1:]):
+        edges.add((np.flatnonzero((verts == v1).all(1))[0], np.flatnonzero((verts == v2).all(1))[0]))
+
+# Create the mesh
+bm = bmesh.new()
+
+for vert in verts:
+    bm.verts.new(vert)
+
+bm.verts.ensure_lookup_table()
+bm.verts.index_update()
+
+for edge in edges:
+    bm.edges.new((bm.verts[edge[0]], bm.verts[edge[1]]))
+
+bm.edges.ensure_lookup_table()
+bm.edges.index_update()
+
+
+# a mapping of a vertex and all of its connected vertices
+connections = defaultdict(set)
+for edge in bm.edges:
+    v1, v2 = edge.verts
+    connections[v1].add(v2)
+    connections[v2].add(v1)
+
+# Compute which edges now form a triangle
+tris = {
+    frozenset([k1, k2, k3])
+    for k1, v1 in connections.items()
+    for k2 in v1
+    for k3 in v1 & connections[k2]
+    if k1 != k2 and k1 != k3 and k2 != k3
+}
+
+for tri in tris:
+    tmp = bm.faces.new(tri)
+    tmp.normal_update()
+
+bm.faces.ensure_lookup_table()
+bm.faces.index_update()
+
+# Fix the normals
+for face in bm.faces:
+    if np.dot(np.array(face.normal), np.array(face.verts[0].co.xyz)) < 0:
+        face.normal_flip()
+
+# Convert to a Mesh from a BMesh
+me = bpy.data.meshes.new("Mesh")
+bm.to_mesh(me)
+
+# Create the mesh in the blender scene
+obj = bpy.data.objects.new("Object", me)
+bpy.context.collection.objects.link(obj)
+
+bm.free()
+
+end_time = time.time()
+
+print(f"Generating the mesh took: {end_time - start_time} seconds")
+
